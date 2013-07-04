@@ -2,6 +2,8 @@
 require "lovekit.all"
 export reloader = require "lovekit.reloader"
 
+moon = require "moon"
+
 local dispatch
 
 import insert from table
@@ -22,7 +24,7 @@ class Player extends Entity
   speed: 80
 
   new: (x=10, y=10)=>
-    @box = Box x,y, @w, @h
+    super x, y
 
     with @sprite
       @anim = StateAnim "stand_down", {
@@ -51,14 +53,14 @@ class Player extends Entity
       }
 
   draw: =>
-    @sprite\draw 2, @box.x, @box.y
-    @anim\draw @box.x, @box.y
+    @sprite\draw 2, @x, @y -- draws shadow
+    @anim\draw @x, @y
 
   update: (dt) =>
     @velocity = movement_vector @speed * dt
     @anim\set_state @direction_name!
 
-    @box\move unpack @velocity
+    @move unpack @velocity
 
     @anim\update dt
 
@@ -243,7 +245,7 @@ class Game
     @player\update dt
 
   draw: =>
-    @viewport\center_on_pt @player.box.x, @player.box.y, @map\to_box!
+    @viewport\center_on_pt @player.x, @player.y, @map\to_box!
     @viewport\apply!
 
 
