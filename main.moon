@@ -122,6 +122,12 @@ love.load = ->
 
   g.setFont main_font
 
+  export sfx = lovekit.audio.Audio "sound"
+  sfx\preload {
+    "blip1"
+    "blip2"
+  }
+
   dispatch = Dispatcher Game!
   dispatch\bind love
 
