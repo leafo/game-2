@@ -39,7 +39,7 @@ class MenuGroup
       when "down"
         menu\go_next!
       when "return"
-        sfx\play "select"
+        sfx\play "select2"
 
 class VerticalList
   row_height: 8
@@ -187,6 +187,7 @@ love.load = ->
     "blip1"
     "blip2"
     "select"
+    "select2"
   }
 
   dispatch = Dispatcher Game!
