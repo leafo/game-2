@@ -14,7 +14,7 @@ enum = (tbl) ->
 
 
 class Player extends Entity
-  lazy_value @, "sprite", -> Spriter "img/scratch.png"
+  lazy_value @, "sprite", -> Spriter "img/characters.png", 16, 32
 
   w: 10
   h: 10
@@ -25,49 +25,33 @@ class Player extends Entity
     @box = Box x,y, @w, @h
 
     with @sprite
-      @anim = StateAnim "walk_up", {
-        stand_left: \seq { "256,64,16,32" }
-        stand_right: \seq { "256,64,16,32" }, 0, true
+      @anim = StateAnim "stand_down", {
+        stand_left: \seq { 17 }
+        stand_right: \seq { 17 }, 0, true
 
-        stand_up: \seq { "240,64,16,32" }
-        stand_down: \seq { "256,64,16,32" }
+        stand_up: \seq { 16 }
+        stand_down: \seq { 17 }
 
         walk_left: \seq {
-          "272,64,16,32"
-          "256,64,16,32"
-
-          "288,64,16,32"
-          "256,64,16,32"
+          18, 17, 19, 17
         }, 0.2
 
         walk_right: \seq {
-          "272,64,16,32"
-          "256,64,16,32"
-
-          "288,64,16,32"
-          "256,64,16,32"
+          18, 17, 19, 17
         }, 0.2, true
 
-
         walk_down: \seq {
-          "256,32,16,32"
-          "256,64,16,32"
-
-          "256,0,16,32"
-          "256,64,16,32"
+          9, 17, 1, 17
         }, 0.2
 
         walk_up: \seq {
-          "240,32,16,32"
-          "240,64,16,32"
-
-          "240,0,16,32"
-          "240,64,16,32"
+          8, 16, 0, 16
         }, 0.2
 
       }
 
   draw: =>
+    @sprite\draw 2, @box.x, @box.y
     @anim\draw @box.x, @box.y
 
   update: (dt) =>
@@ -240,17 +224,18 @@ class Game
       { "Battle Greaves", "boot" }
       { "Crimson Rock", "ring" }
       { "Thick Hands", "glove" }
-    }, Box(40, 10, 120, 140)
-
-
-    @menus\add VerticalList {
-      "Hello"
-      "World"
-      "Catnip"
     }, Box(180, 10, 120, 140)
 
+
+    -- @menus\add VerticalList {
+    --   "Hello"
+    --   "World"
+    --   "Catnip"
+    -- }, Box(180, 10, 120, 140)
+
     @player = Player!
-    @test = TestPlayer 10, 100
+
+    @map = TileMap.from_tiled "maps.first"
 
   on_key: (...) =>
     @menus\on_key ...
@@ -260,15 +245,16 @@ class Game
 
     @menus\update dt
     @player\update dt
-    @test\update dt
 
   draw: =>
     @viewport\apply!
     -- g.print "how is it going!?", 10, 10
+
+    @map\draw @viewport
+
     @menus\draw @viewport
 
     @player\draw!
-    @test\draw!
 
     @viewport\pop!
 
