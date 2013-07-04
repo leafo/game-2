@@ -2,6 +2,8 @@
 require "lovekit.all"
 export reloader = require "lovekit.reloader"
 
+local dispatch
+
 import insert from table
 {graphics: g} = love
 {:min, :max} = math
@@ -10,8 +12,6 @@ enum = (tbl) ->
   for k,v in pairs tbl
     tbl[v] = k
   tbl
-
-
 
 class Player extends Entity
   lazy_value @, "sprite", -> Spriter "img/characters.png", 16, 32
@@ -62,29 +62,6 @@ class Player extends Entity
 
     @anim\update dt
 
-
-class TestPlayer extends Player
-  lazy_value @, "sprite", -> Spriter "img/ffiv.png"
-
-  new: (@x=10, @y=10)=>
-    with @sprite
-      @anim = StateAnim "walk_left", {
-        walk_left: \seq {
-          "74,37,18,26"
-          "74,70,18,26"
-
-          "74,37,18,26"
-          "74,103,18,26"
-
-          -- "74,136,18,26"
-        }, 0.2
-      }
-
-  draw: =>
-    @anim\draw @x, @y
-
-  update: (dt) =>
-    @anim\update dt
 
 -- holds a list of things that can be scrolled through
 class MenuGroup
@@ -208,13 +185,13 @@ class ItemList extends VerticalList
     MenuGroup.icons\draw @item_types[item_type], 0, y
     g.print name\lower!, @icon_padding, y + 1
 
-class Game
+
+class MainMenu extends MenuGroup
   new: =>
+    super!
     @viewport = Viewport scale: 2
 
-    @menus = MenuGroup!
-
-    @menus\add ItemList {
+    @add ItemList {
       { "Good Sword", "sword" }
       { "Death Bringer", "sword" }
       { "Wallshield", "shield" }
@@ -226,34 +203,51 @@ class Game
       { "Thick Hands", "glove" }
     }, Box(180, 10, 120, 140)
 
-
-    -- @menus\add VerticalList {
+    -- @add VerticalList {
     --   "Hello"
     --   "World"
     --   "Catnip"
     -- }, Box(180, 10, 120, 140)
 
-    @player = Player!
+  on_show: (dispatch) =>
+    @game = dispatch\parent!
 
+  on_key: (key, code) =>
+    switch key
+      when "x"
+        dispatch\pop!
+        return true
+
+    super key, code
+  
+  draw: =>
+    @viewport\apply!
+    super @viewport
+    @viewport\pop!
+
+class Game
+  new: =>
+    @viewport = Viewport scale: 2
+
+    @player = Player!
+    @menu = MainMenu @player
     @map = TileMap.from_tiled "maps.first"
 
-  on_key: (...) =>
-    @menus\on_key ...
+  on_key: (key) =>
+    switch key
+      when "x"
+        dispatch\push @menu
 
   update: (dt) =>
     reloader\update! if reloader
-
-    @menus\update dt
     @player\update dt
 
   draw: =>
+    @viewport\center_on_pt @player.box.x, @player.box.y, @map\to_box!
     @viewport\apply!
-    -- g.print "how is it going!?", 10, 10
+
 
     @map\draw @viewport
-
-    @menus\draw @viewport
-
     @player\draw!
 
     @viewport\pop!
