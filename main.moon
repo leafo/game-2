@@ -13,28 +13,69 @@ enum = (tbl) ->
 
 
 
-class Player extends Box
+class Player extends Entity
   lazy_value @, "sprite", -> Spriter "img/scratch.png"
 
   w: 10
   h: 10
 
-  new: (@x=10, @y=10)=>
-    with @sprite
-      @anim = StateAnim "walk_left", {
-        walk_left: \seq {
-          "256,64,16,32"
-          "272,64,16,32"
+  speed: 80
 
+  new: (x=10, y=10)=>
+    @box = Box x,y, @w, @h
+
+    with @sprite
+      @anim = StateAnim "walk_up", {
+        stand_left: \seq { "256,64,16,32" }
+        stand_right: \seq { "256,64,16,32" }, 0, true
+
+        stand_up: \seq { "240,64,16,32" }
+        stand_down: \seq { "256,64,16,32" }
+
+        walk_left: \seq {
+          "272,64,16,32"
           "256,64,16,32"
+
           "288,64,16,32"
+          "256,64,16,32"
         }, 0.2
+
+        walk_right: \seq {
+          "272,64,16,32"
+          "256,64,16,32"
+
+          "288,64,16,32"
+          "256,64,16,32"
+        }, 0.2, true
+
+
+        walk_down: \seq {
+          "256,32,16,32"
+          "256,64,16,32"
+
+          "256,0,16,32"
+          "256,64,16,32"
+        }, 0.2
+
+        walk_up: \seq {
+          "240,32,16,32"
+          "240,64,16,32"
+
+          "240,0,16,32"
+          "240,64,16,32"
+        }, 0.2
+
       }
 
   draw: =>
-    @anim\draw @x, @y
+    @anim\draw @box.x, @box.y
 
   update: (dt) =>
+    @velocity = movement_vector @speed * dt
+    @anim\set_state @direction_name!
+
+    @box\move unpack @velocity
+
     @anim\update dt
 
 
@@ -54,6 +95,12 @@ class TestPlayer extends Player
           -- "74,136,18,26"
         }, 0.2
       }
+
+  draw: =>
+    @anim\draw @x, @y
+
+  update: (dt) =>
+    @anim\update dt
 
 -- holds a list of things that can be scrolled through
 class MenuGroup
