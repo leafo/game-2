@@ -231,9 +231,16 @@ class Game
   new: =>
     @viewport = Viewport scale: 2
 
-    @player = Player!
     @menu = MainMenu @player
-    @map = TileMap.from_tiled "maps.first"
+
+    @player = Player!
+    @map = TileMap.from_tiled "maps.first", {
+      object: (o) ->
+        switch o.name
+          when "spawn"
+            @player.x = o.x
+            @player.y = o.y
+    }
 
   on_key: (key) =>
     switch key

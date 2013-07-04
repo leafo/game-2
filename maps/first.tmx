@@ -18,4 +18,7 @@
    eJxjYBgFo2AUjIKhA9gH2gGjgCwwGm+jYKQBAD7AAA8=
   </data>
  </layer>
+ <objectgroup name="events" width="30" height="20">
+  <object name="spawn" x="64" y="192"/>
+ </objectgroup>
 </map>

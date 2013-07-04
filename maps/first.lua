@@ -124,6 +124,26 @@ return {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
       }
+    },
+    {
+      type = "objectgroup",
+      name = "events",
+      visible = true,
+      opacity = 1,
+      properties = {},
+      objects = {
+        {
+          name = "spawn",
+          type = "",
+          shape = "rectangle",
+          x = 64,
+          y = 192,
+          width = 0,
+          height = 0,
+          visible = true,
+          properties = {}
+        }
+      }
     }
   }
 }
