@@ -1,5 +1,6 @@
 
 require "lovekit.all"
+export reloader = require "lovekit.reloader"
 
 import insert from table
 {graphics: g} = love
@@ -10,6 +11,49 @@ enum = (tbl) ->
     tbl[v] = k
   tbl
 
+
+
+class Player extends Box
+  lazy_value @, "sprite", -> Spriter "img/scratch.png"
+
+  w: 10
+  h: 10
+
+  new: (@x=10, @y=10)=>
+    with @sprite
+      @anim = StateAnim "walk_left", {
+        walk_left: \seq {
+          "256,64,16,32"
+          "272,64,16,32"
+
+          "256,64,16,32"
+          "288,64,16,32"
+        }, 0.2
+      }
+
+  draw: =>
+    @anim\draw @x, @y
+
+  update: (dt) =>
+    @anim\update dt
+
+
+class TestPlayer extends Player
+  lazy_value @, "sprite", -> Spriter "img/ffiv.png"
+
+  new: (@x=10, @y=10)=>
+    with @sprite
+      @anim = StateAnim "walk_left", {
+        walk_left: \seq {
+          "74,37,18,26"
+          "74,70,18,26"
+
+          "74,37,18,26"
+          "74,103,18,26"
+
+          -- "74,136,18,26"
+        }, 0.2
+      }
 
 -- holds a list of things that can be scrolled through
 class MenuGroup
@@ -149,25 +193,36 @@ class Game
       { "Battle Greaves", "boot" }
       { "Crimson Rock", "ring" }
       { "Thick Hands", "glove" }
-    }, Box(10, 10, 120, 140)
+    }, Box(40, 10, 120, 140)
 
 
     @menus\add VerticalList {
       "Hello"
       "World"
-      "Piss"
-    }, Box(150, 10, 120, 140)
+      "Catnip"
+    }, Box(180, 10, 120, 140)
+
+    @player = Player!
+    @test = TestPlayer 10, 100
 
   on_key: (...) =>
     @menus\on_key ...
 
   update: (dt) =>
+    reloader\update! if reloader
+
     @menus\update dt
+    @player\update dt
+    @test\update dt
 
   draw: =>
     @viewport\apply!
     -- g.print "how is it going!?", 10, 10
     @menus\draw @viewport
+
+    @player\draw!
+    @test\draw!
+
     @viewport\pop!
 
 load_font = (img, chars)->
