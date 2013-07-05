@@ -1,21 +1,22 @@
 
 require "lovekit.all"
 export reloader = require "lovekit.reloader"
-
-moon = require "moon"
-
-import insert from table
-{graphics: g} = love
-{:min, :max} = math
+export moon = require "moon"
 
 export DISPATCH
-export p = (str, ...) -> g.print str\lower!, ...
 export enum = (tbl) ->
   for k,v in pairs tbl
     tbl[v] = k
   tbl
 
+import insert from table
+{graphics: g} = love
+{:min, :max} = math
+
 import MainMenu from require "menu"
+import Party from require "party"
+
+export p = (str, ...) -> g.print str\lower!, ...
 
 class Player extends Entity
   lazy sprite: -> Spriter "img/characters.png", 16, 32
@@ -71,7 +72,11 @@ class Game
   new: =>
     @viewport = Viewport scale: 2
 
-    @menu = MainMenu @player
+    @party = Party!
+    @party\init!
+    moon.p @party
+
+    @menu = MainMenu @party
 
     @player = Player!
     @map = TileMap.from_tiled "maps.first", {
@@ -121,7 +126,7 @@ love.load = ->
     "select2"
   }
 
-  with DISPATCH = Dispatcher MainMenu! -- Game!
+  with DISPATCH = Dispatcher Game!
     .default_transition = FadeTransition
     \bind love
 

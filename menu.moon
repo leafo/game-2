@@ -3,6 +3,8 @@ import insert from table
 {graphics: g} = love
 {:min, :max} = math
 
+local *
+
 -- holds a list of things that can be scrolled through
 class MenuGroup
   lazy icons: -> Spriter "img/icons.png", 8
@@ -183,25 +185,24 @@ class MainMenu extends MenuGroup
     with imgfy "img/menu_tile.png"
       \set_wrap "repeat", "repeat"
 
-  new: =>
+  summary_x: 18, summary_y: 25
+  summary_margin: 6
+
+  new: (@party) =>
     super!
     @viewport = Viewport scale: 2
 
-    @health_bar = RedBar 5,5, 80, 0
-    @mana_bar = BlueBar 5,15, 80, 0.5
-    @exp_bar = GreenBar 5,25, 80, 1.0
-
-    @add ItemList {
-      { "Good Sword", "sword" }
-      { "Death Bringer", "sword" }
-      { "Wallshield", "shield" }
-      { "Small Potion", "potion" }
-      { "Charged Rod", "staff" }
-      { "Sturdy Tarp", "helmet" }
-      { "Battle Greaves", "boot" }
-      { "Crimson Rock", "ring" }
-      { "Thick Hands", "glove" }
-    }, Box(180, 10, 120, 140)
+    -- @add ItemList {
+    --   { "Good Sword", "sword" }
+    --   { "Death Bringer", "sword" }
+    --   { "Wallshield", "shield" }
+    --   { "Small Potion", "potion" }
+    --   { "Charged Rod", "staff" }
+    --   { "Sturdy Tarp", "helmet" }
+    --   { "Battle Greaves", "boot" }
+    --   { "Crimson Rock", "ring" }
+    --   { "Thick Hands", "glove" }
+    -- }, Box(180, 10, 120, 140)
 
     -- @add VerticalList {
     --   "Hello"
@@ -211,6 +212,13 @@ class MainMenu extends MenuGroup
 
   on_show: (dispatch) =>
     @game = dispatch\parent!
+
+    x,y = @summary_x, @summary_y
+    @summaries = for char in *@party.characters
+      with CharacterSummary char, @
+        .x = x
+        .y = y
+        y += CharacterSummary.h + @summary_margin
 
   on_key: (key, code) =>
     switch key
@@ -242,26 +250,79 @@ class MainMenu extends MenuGroup
   draw: =>
     @viewport\apply!
     @draw_background!
-    @draw_container 10,10, 100, 100
-    g.push!
-    g.translate 10,10
 
-    @health_bar\draw!
-    @mana_bar\draw!
-    @exp_bar\draw!
-
-    g.pop!
+    for s in *@summaries
+      s\draw!
 
     super @viewport
 
     @viewport\pop!
 
   update: (dt) =>
-    -- for bar in *{@health_bar, @mana_bar, @exp_bar}
-    --   bar.p += dt*2
-    --   bar.p = 0 if bar.p > 1
+    for s in *@summaries
+      s\update dt
 
-    super dt
+class CharacterSummary extends Box
+  w: 193
+  h: 44
+  x: 0
+  y: 0
+
+  label_color: {197, 189, 128}
+
+  name_pos: {27, 5}
+  lv_pos: {27, 14}
+  lv_val_pos: {47, 14}
+
+  exp_pos: {27, 23}
+  exp_val_pos: {51,23}
+
+  hp_pos: {129, 5}
+  hp_val_pos: {148, 5}
+  mp_pos: {129, 23}
+  mp_val_pos: {149, 23}
+
+  hp_bar_pos: {126, 13, 59}
+  mp_bar_pos: {126, 31, 59}
+  exp_bar_pos: {24, 31, 83}
+
+  image_pos: {6,1}
+
+  new: (@char, @parent) =>
+    @health_bar = RedBar unpack @hp_bar_pos
+    @mana_bar = BlueBar unpack @mp_bar_pos
+    @exp_bar = GreenBar unpack @exp_bar_pos
+
+  update: (dt) =>
+
+  draw: =>
+    g.push!
+    g.translate @x, @y
+    @parent\draw_container 0,0, @w, @h
+
+    p @char.name, unpack @name_pos
+    @char.sprite\draw @char.image, unpack @image_pos
+
+    g.setColor unpack @label_color
+    p "Lv:", unpack @lv_pos
+    p "Exp:", unpack @exp_pos
+
+    p "HP:", unpack @hp_pos
+    p "MP:", unpack @mp_pos
+
+    g.setColor 255, 255, 255
+
+    p tostring(@char.level), unpack @lv_val_pos
+    p "#{@char.exp}/#{@char.exp_next}", unpack @exp_val_pos
+    p "#{@char.hp}/#{@char.max_hp}", unpack @hp_val_pos
+    p "#{@char.mp}/#{@char.max_mp}", unpack @mp_val_pos
+
+    for bar in *{@health_bar, @mana_bar, @exp_bar}
+      bar\draw!
+
+    g.pop!
+
+  update: (dt) =>
 
 { :MainMenu }
 
