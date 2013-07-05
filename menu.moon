@@ -5,8 +5,7 @@ import insert from table
 
 -- holds a list of things that can be scrolled through
 class MenuGroup
-  lazy_value @, "icons", ->
-    Spriter "img/icons.png", 8
+  lazy icons: -> Spriter "img/icons.png", 8
 
   new: =>
     @menus = {}
@@ -126,8 +125,7 @@ class ItemList extends VerticalList
     g.print name\lower!, @icon_padding, y + 1
 
 class GreenBar
-  lazy_value @, "ui_sprite", ->
-    Spriter "img/ui.png"
+  lazy ui_sprite: -> Spriter "img/ui.png"
 
   ox: 0, oy: 17
 
@@ -181,7 +179,7 @@ class BlueBar extends GreenBar
   ox: 18, oy: 17
 
 class MainMenu extends MenuGroup
-  lazy_value @, "tile_bg", ->
+  lazy tile_bg: ->
     with imgfy "img/menu_tile.png"
       \set_wrap "repeat", "repeat"
 
@@ -217,7 +215,7 @@ class MainMenu extends MenuGroup
   on_key: (key, code) =>
     switch key
       when "x"
-        dispatch\pop!
+        DISPATCH\pop!
         return true
 
     super key, code

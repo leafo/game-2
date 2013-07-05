@@ -18,7 +18,7 @@ export enum = (tbl) ->
 import MainMenu from require "menu"
 
 class Player extends Entity
-  lazy_value @, "sprite", -> Spriter "img/characters.png", 16, 32
+  lazy sprite: -> Spriter "img/characters.png", 16, 32
 
   w: 10
   h: 10
