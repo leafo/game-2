@@ -10,6 +10,8 @@ import insert from table
 {graphics: g} = love
 {:min, :max} = math
 
+p = (str, ...) -> g.print str\lower!, ...
+
 enum = (tbl) ->
   for k,v in pairs tbl
     tbl[v] = k
@@ -221,10 +223,26 @@ class MainMenu extends MenuGroup
         return true
 
     super key, code
-  
+
+  draw_container: (x,y,w,h) =>
+    -- back
+    g.setColor 0,0,0, .09 * 255
+    g.rectangle "fill", x,y,w,h
+
+    -- top line
+    g.setColor 0,0,0, .25 * 255
+    g.rectangle "fill", x,y,w,1
+
+    -- bottom line
+    g.setColor 233,236,204, .25 * 255
+    g.rectangle "fill", x,y + h - 1,w,1
+
   draw: =>
     @viewport\apply!
     super @viewport
+
+    @draw_container 10,10, 100, 100
+
     @viewport\pop!
 
 class Game
@@ -269,7 +287,7 @@ love.load = ->
   g.setBackgroundColor 30,30,30
 
   main_font = load_font "img/font.png",
-    [[ abcdefghijklmnopqrstuvwxyz-1234567890!.,:;'"?$&]]
+    [[ abcdefghijklmnopqrstuvwxyz-1234567890!.,:;'"?$&/]]
 
   g.setFont main_font
 
