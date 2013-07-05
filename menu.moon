@@ -23,7 +23,12 @@ class MenuGroup
     m\draw ... for m in *@menus
 
   on_key: (key) =>
-    return unless @current_menu
+    unless @current_menu
+      switch key
+        when "up", "down", "z", "return"
+          sfx\play "blip2"
+      return
+
     menu = @menus[@current_menu]
 
     switch key
@@ -31,29 +36,12 @@ class MenuGroup
         menu\go_prev!
       when "down"
         menu\go_next!
-      when "return"
+      when "z", "return"
         sfx\play "select2"
+        menu\on_select!
 
-class VerticalList extends Box
-  row_height: 8
-  row_spacing: 4
-  scrollbar_width: 4
-  cursor_offset: 10
-
-  padding_left: 0
-  padding_top: 0
-
-  new: (@items, ...) =>
-    super ...
-    @update_dimension!
-    @offset_x = 0
-    @selected_item = 1
-
-  update_dimension: =>
-    @inner_height = (@row_height + @row_spacing) * #@items
-    @offset_x = 0
-
-  update: (dt) =>
+class BaseList extends Box
+  selected_item: 1
 
   move: (dp) =>
     old_pos = @selected_item
@@ -69,6 +57,30 @@ class VerticalList extends Box
   go_next: => @move 1
   go_prev: => @move -1
 
+  draw_frame: =>
+    g.setColor 255,255,255,20
+    g.rectangle "fill", 0,0, @w, @h
+    g.setColor 255,255,255
+
+-- Also does scrolling
+class VerticalList extends BaseList
+  row_height: 8
+  row_spacing: 4
+  scrollbar_width: 4
+  cursor_offset: 10
+
+  padding_left: 0
+  padding_top: 0
+
+  new: (@items, ...) =>
+    super ...
+    @update_dimension!
+
+  update_dimension: =>
+    @inner_height = (@row_height + @row_spacing) * #@items
+
+  update: (dt) =>
+
   row_offset: (i) =>
     (i - 1) * (@row_height + @row_spacing) + @padding_top
 
@@ -79,13 +91,7 @@ class VerticalList extends Box
     y = @row_offset i
     g.print tostring(item)\lower!, 0, y
 
-  draw_frame: =>
-    g.setColor 255,255,255,20
-    g.rectangle "fill", 0,0, @w, @h
-    g.setColor 255,255,255
-
   draw: (v) =>
-
     x,y,w,h = @unpack!
 
     g.push!
@@ -112,6 +118,46 @@ class VerticalList extends Box
 
     g.pop!
     g.setScissor!
+
+
+class HorizontalList extends BaseList
+  column_width: 60
+  cursor_offset: 10
+
+  padding_left: 0
+  padding_top: 0
+
+  new: (@items, ...) =>
+    super ...
+
+  update: (dt) =>
+
+  column_offset: (i) =>
+    (i - 1) * @column_width + @padding_left
+
+  draw_column: (i, item) =>
+    x = @column_offset i
+    y = @padding_top
+    g.print tostring(item)\lower!, x, y
+
+  draw: =>
+    {:x,:y,:w, :h} = @
+    g.push!
+    g.translate x,y
+
+    @draw_frame!
+
+    -- items
+    g.push!
+    g.translate @cursor_offset, 0
+    for i, item in ipairs @items
+      @draw_column i, item
+    g.pop!
+
+    -- cursor
+    MenuGroup.icons\draw 0, @column_offset(@selected_item) , @padding_top
+
+    g.pop!
 
 
 -- item: {name, type}
@@ -194,11 +240,11 @@ class MainMenuActions extends VerticalList
   lazy ui_sprite: -> Spriter "img/ui.png"
 
   items: {
-    "Items"
-    "Equip"
-    "Status"
-    "Abilities"
-    "Save"
+    { "Items", "items" }
+    { "Equip", "equip" }
+    { "Status", "status" }
+    { "Abilities", "abilities" }
+    { "Save", "save" }
   }
 
   row_height: 17
@@ -207,19 +253,30 @@ class MainMenuActions extends VerticalList
   padding_top: 8
   padding_left: 4
 
+  on_select: =>
+    item = @items[@selected_item][2]
+
+    menu = switch item
+      when "items"
+        @menus[item] or= ItemsMenu @
+
+    DISPATCH\push @menus[item]
+
   draw_row: (i, row) =>
     x,y = 0, @row_offset i
 
     @ui_sprite\draw "0,0,63,17", x, y
-    p row, x + 9, y + 5
+    p row[1], x + 9, y + 5
 
   draw_frame: =>
     @parent\draw_container 0,0, @w, @h
 
   new: (@parent, ...) =>
     super nil, ...
+    @menus = {}
 
-class MainMenu extends MenuGroup
+
+class BaseMenu extends MenuGroup
   lazy {
     ui_sprite: -> Spriter "img/ui.png"
     tile_bg: ->
@@ -227,41 +284,23 @@ class MainMenu extends MenuGroup
         \set_wrap "repeat", "repeat"
   }
 
-  summary_x: 18, summary_y: 25
-  summary_margin: 6
-
-  new: (@party) =>
-    super!
+  new: =>
     @viewport = Viewport scale: 2
-    @add MainMenuActions @, 219, 10, 91, 119
+    super!
 
-    -- @add ItemList {
-    --   { "Good Sword", "sword" }
-    --   { "Death Bringer", "sword" }
-    --   { "Wallshield", "shield" }
-    --   { "Small Potion", "potion" }
-    --   { "Charged Rod", "staff" }
-    --   { "Sturdy Tarp", "helmet" }
-    --   { "Battle Greaves", "boot" }
-    --   { "Crimson Rock", "ring" }
-    --   { "Thick Hands", "glove" }
-    -- }, 180, 10, 120, 140
+  draw: =>
+    @viewport\apply!
+    @draw_background!
 
-    -- @add VerticalList {
-    --   "Hello"
-    --   "World"
-    --   "Catnip"
-    -- }, 180, 10, 120, 140
+    @draw_inside!
 
-  on_show: (dispatch) =>
-    @game = dispatch\parent!
+    super @viewport
 
-    x,y = @summary_x, @summary_y
-    @summaries = for char in *@party.characters
-      with CharacterSummary char, @
-        .x = x
-        .y = y
-        y += CharacterSummary.h + @summary_margin
+    @ui_sprite\draw "63,0,37,11", 0,0
+    p "help", 5,1
+    p "use or trash items", 40, 2
+
+    @viewport\pop!
 
   on_key: (key, code) =>
     switch key
@@ -270,6 +309,8 @@ class MainMenu extends MenuGroup
         return true
 
     super key, code
+
+  draw_inside: => -- override me
 
   draw_container: (x,y,w,h) =>
     -- back
@@ -291,20 +332,59 @@ class MainMenu extends MenuGroup
     @tile_bg\drawq @_tile_quad, 0, 0
 
 
-  draw: =>
-    @viewport\apply!
-    @draw_background!
+class ItemsMenuTabs extends HorizontalList
+  padding_left: 10
+  padding_top: 5
 
+  new: (@parent, ...) =>
+    super {
+      "Use"
+      "Sort"
+      "Rare"
+    }, ...
+
+  draw_frame: =>
+    @parent\draw_container 0,0, @w, @h
+
+  on_select: (item) =>
+
+
+class ItemsMenu extends BaseMenu
+  new: (@parent) =>
+    super!
+    @add ItemsMenuTabs @, 10, 18, 300, 20
+
+  draw_inside: =>
+    -- @draw_container 10, 45, 300, 127
+
+class MainMenu extends BaseMenu
+  summary_x: 18, summary_y: 25
+  summary_margin: 6
+
+  new: (@party) =>
+    super!
+    @add MainMenuActions @, 219, 10, 91, 119
+
+    -- @add VerticalList {
+    --   "Hello"
+    --   "World"
+    --   "Catnip"
+    -- }, 180, 10, 120, 140
+
+  on_show: (dispatch) =>
+    @game = dispatch\parent!
+
+    x,y = @summary_x, @summary_y
+    @summaries = for char in *@party.characters
+      with CharacterSummary char, @
+        .x = x
+        .y = y
+        y += CharacterSummary.h + @summary_margin
+
+
+  draw_inside: =>
     for s in *@summaries
       s\draw!
-
-    super @viewport
-
-    @ui_sprite\draw "63,0,37,11", 0,0
-    p "help", 5,1
-    p "use or trash items", 40, 2
-
-    @viewport\pop!
 
   update: (dt) =>
     for s in *@summaries
