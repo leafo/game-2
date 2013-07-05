@@ -74,7 +74,6 @@ class Game
 
     @party = Party!
     @party\init!
-    moon.p @party
 
     @menu = MainMenu @party
 

@@ -34,13 +34,17 @@ class MenuGroup
       when "return"
         sfx\play "select2"
 
-class VerticalList
+class VerticalList extends Box
   row_height: 8
   row_spacing: 4
   scrollbar_width: 4
   cursor_offset: 10
 
-  new: (@items, @box) =>
+  padding_left: 0
+  padding_top: 0
+
+  new: (@items, ...) =>
+    super ...
     @update_dimension!
     @offset_x = 0
     @selected_item = 1
@@ -66,7 +70,7 @@ class VerticalList
   go_prev: => @move -1
 
   row_offset: (i) =>
-    (i - 1) * (@row_height + @row_spacing)
+    (i - 1) * (@row_height + @row_spacing) + @padding_top
 
   draw_scrollbar: (w, h) =>
     return if @inner_height <= h
@@ -75,14 +79,19 @@ class VerticalList
     y = @row_offset i
     g.print tostring(item)\lower!, 0, y
 
-  draw: (v) =>
-    x,y,w,h = @box\unpack!
-
+  draw_frame: =>
     g.setColor 255,255,255,20
+    g.rectangle "fill", 0,0, @w, @h
+    g.setColor 255,255,255
+
+  draw: (v) =>
+
+    x,y,w,h = @unpack!
+
     g.push!
     g.translate x,y
-    g.rectangle "fill", 0,0,w,h
-    g.setColor 255,255,255
+
+    @draw_frame!
 
     vx, vy = v\project x,y
     vw, vh = v\project w,h
@@ -91,13 +100,13 @@ class VerticalList
 
     -- draw items
     g.push!
-    g.translate 10, 0
+    g.translate @cursor_offset + @padding_left, 0
     for i, item in ipairs @items
       @draw_row i, item
     g.pop!
 
     -- draw cursor
-    MenuGroup.icons\draw 0, 0, (@selected_item - 1) * (@row_height + @row_spacing) - 1
+    MenuGroup.icons\draw 0, @padding_left, @row_offset @selected_item
 
     @draw_scrollbar w, h
 
@@ -180,10 +189,43 @@ class RedBar extends GreenBar
 class BlueBar extends GreenBar
   ox: 18, oy: 17
 
+
+class MainMenuActions extends VerticalList
+  lazy ui_sprite: -> Spriter "img/ui.png"
+
+  items: {
+    "Items"
+    "Equip"
+    "Status"
+    "Abilities"
+    "Save"
+  }
+
+  row_height: 17
+  row_spacing: 4
+
+  padding_top: 8
+  padding_left: 4
+
+  draw_row: (i, row) =>
+    x,y = 0, @row_offset i
+
+    @ui_sprite\draw "0,0,63,17", x, y
+    p row, x + 9, y + 5
+
+  draw_frame: =>
+    @parent\draw_container 0,0, @w, @h
+
+  new: (@parent, ...) =>
+    super nil, ...
+
 class MainMenu extends MenuGroup
-  lazy tile_bg: ->
-    with imgfy "img/menu_tile.png"
-      \set_wrap "repeat", "repeat"
+  lazy {
+    ui_sprite: -> Spriter "img/ui.png"
+    tile_bg: ->
+      with imgfy "img/menu_tile.png"
+        \set_wrap "repeat", "repeat"
+  }
 
   summary_x: 18, summary_y: 25
   summary_margin: 6
@@ -191,6 +233,7 @@ class MainMenu extends MenuGroup
   new: (@party) =>
     super!
     @viewport = Viewport scale: 2
+    @add MainMenuActions @, 219, 10, 91, 119
 
     -- @add ItemList {
     --   { "Good Sword", "sword" }
@@ -202,13 +245,13 @@ class MainMenu extends MenuGroup
     --   { "Battle Greaves", "boot" }
     --   { "Crimson Rock", "ring" }
     --   { "Thick Hands", "glove" }
-    -- }, Box(180, 10, 120, 140)
+    -- }, 180, 10, 120, 140
 
     -- @add VerticalList {
     --   "Hello"
     --   "World"
     --   "Catnip"
-    -- }, Box(180, 10, 120, 140)
+    -- }, 180, 10, 120, 140
 
   on_show: (dispatch) =>
     @game = dispatch\parent!
@@ -247,6 +290,7 @@ class MainMenu extends MenuGroup
     @_tile_quad or= g.newQuad 0, 0, @viewport.w, @viewport.h, @tile_bg\width!, @tile_bg\height!
     @tile_bg\drawq @_tile_quad, 0, 0
 
+
   draw: =>
     @viewport\apply!
     @draw_background!
@@ -255,6 +299,10 @@ class MainMenu extends MenuGroup
       s\draw!
 
     super @viewport
+
+    @ui_sprite\draw "63,0,37,11", 0,0
+    p "help", 5,1
+    p "use or trash items", 40, 2
 
     @viewport\pop!
 
