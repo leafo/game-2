@@ -73,7 +73,6 @@ class Game
     @viewport = Viewport scale: 2
 
     @party = Party!
-    @party\init!
 
     @menu = MainMenu @party
 

@@ -29,13 +29,13 @@ class Character
     @mod_stats = setmetatable {}, __index: @
 
 class Party
-  -- create the new party
-  init: =>
-    insert @characters, with Character!
-      .name = "Arkeus"
-
   new: =>
     @characters = {}
     @items = {}
+
+    -- dummy party
+    insert @characters, with Character!
+      .name = "Arkeus"
+
 
 { :Party }
