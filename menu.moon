@@ -31,14 +31,25 @@ class MenuGroup
 
     menu = @menus[@current_menu]
 
-    switch key
+    moved = switch key
       when "up"
-        menu\go_prev!
+        menu\move_updown -1
       when "down"
-        menu\go_next!
+        menu\move_updown 1
+      when "left"
+        menu\move_leftright -1
+      when "right"
+        menu\move_leftright 1
       when "z", "return"
-        sfx\play "select2"
-        menu\on_select!
+        if menu\on_select!
+          sfx\play "select2"
+        nil
+
+    if moved != nil
+      if moved
+        sfx\play "blip1"
+      else
+        sfx\play "blip2"
 
 class BaseList extends Box
   selected_item: 1
@@ -49,19 +60,18 @@ class BaseList extends Box
   draw_cursor: =>
     MenuGroup.icons\draw 0, @cell_offset @selected_item
 
+  move_updown: (dp) => @move dp
+  move_leftright: (dp) => false
+
   move: (dp) =>
-    old_pos = @selected_item
-    @selected_item = max 1, min @selected_item + dp, #@items
+    new_pos = @selected_item + dp
+    if new_pos < 1 or new_pos > #@items
+      return false
 
-    if old_pos == @selected_item
-      sfx\play "blip2"
-      false
-    else
-      sfx\play "blip1"
-      true
+    @selected_item = new_pos
+    true
 
-  go_next: => @move 1
-  go_prev: => @move -1
+  update: (dt) =>
 
   draw_frame: =>
     g.setColor 255,255,255,20
@@ -83,8 +93,6 @@ class VerticalList extends BaseList
 
   update_dimension: =>
     @inner_height = (@row_height + @row_spacing) * #@items
-
-  update: (dt) =>
 
   cell_offset: (i) =>
     @padding_left, (i - 1) * (@row_height + @row_spacing) + @padding_top
@@ -129,10 +137,11 @@ class HorizontalList extends BaseList
   new: (@items, ...) =>
     super ...
 
-  update: (dt) =>
-
   cell_offset: (i) =>
     (i - 1) * @column_width + @padding_left, @padding_top
+
+  move_updown: (dp) => false
+  move_leftright: (dp) => @move dp
 
   draw: =>
     {:x,:y,:w, :h} = @
@@ -170,11 +179,33 @@ class ColumnList extends VerticalList
 
     x + @padding_left, y + @padding_top
 
+  move_updown: (dp) => @move dp * @num_columns
+
+  move_leftright: (dp) =>
+    column = (@selected_item - 1) % @num_columns + 1
+
+    if dp == -1 and column == 1
+      return false
+
+    if dp == 1 and column == @num_columns
+      return false
+
+    @move dp
 
 -- item: {name, type}
-class ItemList extends VerticalList
+class ItemList extends ColumnList
   icon_padding: 10
 
+  padding_left: 10
+  padding_top: 5
+
+  new: (@parent, items, ...) =>
+    super items, ...
+
+  draw_frame: =>
+    @parent\draw_container 0,0, @w, @h
+
+  -- item type name -> icon
   item_types: enum {
     "sword", "staff", "potion", "shield", "armor", "boot", "helmet", "ring",
     "glove"
@@ -182,15 +213,14 @@ class ItemList extends VerticalList
 
   draw_cell: (i, item) =>
     {name, item_type} = item
-
-    y = (i - 1) * (@row_height + @row_spacing)
+    x,y = @cell_offset i
 
     -- g.setColor 255,0,0,64
     -- g.rectangle "fill", 0, y, 100, @row_height
     -- g.setColor 255,255,255,255
 
-    MenuGroup.icons\draw @item_types[item_type], 0, y
-    g.print name\lower!, @icon_padding, y + 1
+    MenuGroup.icons\draw @item_types[item_type], x, y
+    g.print name\lower!, x + @icon_padding, y + 1
 
 class GreenBar
   lazy ui_sprite: -> Spriter "img/ui.png"
@@ -363,24 +393,21 @@ class ItemsMenuTabs extends HorizontalList
 class ItemsMenu extends BaseMenu
   new: (@parent) =>
     super!
-    @add ColumnList {
-      "Anus"
-      "Anus"
-      "Anus"
-      "Anus"
-      "Anus"
-      "Anus"
-      "Anus"
-      "Anus"
-      "Anus"
-      "Anus"
-      "Anus"
-      "Anus"
-      "Anus"
-      "Anus"
+
+    @add ItemList @, {
+      { "Good Sword", "sword" }
+      { "Death Bringer", "sword" }
+      { "Wallshield", "shield" }
+      { "Small Potion", "potion" }
+      { "Charged Rod", "staff" }
+      { "Sturdy Tarp", "helmet" }
+      { "Battle Greaves", "boot" }
+      { "Crimson Rock", "ring" }
+      { "Thick Hands", "glove" }
     }, 10, 45, 300, 127
 
-    -- @add ItemsMenuTabs @, 10, 18, 300, 20
+
+    @add ItemsMenuTabs @, 10, 18, 300, 20
 
   draw_inside: =>
     -- @draw_container 10, 45, 300, 127
