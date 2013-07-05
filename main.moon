@@ -282,5 +282,6 @@ love.load = ->
   }
 
   dispatch = Dispatcher Game!
+  dispatch.default_transition = FadeTransition
   dispatch\bind love
 
