@@ -43,6 +43,12 @@ class MenuGroup
 class BaseList extends Box
   selected_item: 1
 
+  draw_cell: (i, item) =>
+    g.print tostring(item)\lower!, @cell_offset i
+
+  draw_cursor: =>
+    MenuGroup.icons\draw 0, @cell_offset @selected_item
+
   move: (dp) =>
     old_pos = @selected_item
     @selected_item = max 1, min @selected_item + dp, #@items
@@ -62,7 +68,6 @@ class BaseList extends Box
     g.rectangle "fill", 0,0, @w, @h
     g.setColor 255,255,255
 
--- Also does scrolling
 class VerticalList extends BaseList
   row_height: 8
   row_spacing: 4
@@ -81,15 +86,11 @@ class VerticalList extends BaseList
 
   update: (dt) =>
 
-  row_offset: (i) =>
-    (i - 1) * (@row_height + @row_spacing) + @padding_top
+  cell_offset: (i) =>
+    @padding_left, (i - 1) * (@row_height + @row_spacing) + @padding_top
 
   draw_scrollbar: (w, h) =>
     return if @inner_height <= h
-
-  draw_row: (i, item) =>
-    y = @row_offset i
-    g.print tostring(item)\lower!, 0, y
 
   draw: (v) =>
     x,y,w,h = @unpack!
@@ -106,14 +107,12 @@ class VerticalList extends BaseList
 
     -- draw items
     g.push!
-    g.translate @cursor_offset + @padding_left, 0
+    g.translate @cursor_offset, 0
     for i, item in ipairs @items
-      @draw_row i, item
+      @draw_cell i, item
     g.pop!
 
-    -- draw cursor
-    MenuGroup.icons\draw 0, @padding_left, @row_offset @selected_item
-
+    @draw_cursor!
     @draw_scrollbar w, h
 
     g.pop!
@@ -132,13 +131,8 @@ class HorizontalList extends BaseList
 
   update: (dt) =>
 
-  column_offset: (i) =>
-    (i - 1) * @column_width + @padding_left
-
-  draw_column: (i, item) =>
-    x = @column_offset i
-    y = @padding_top
-    g.print tostring(item)\lower!, x, y
+  cell_offset: (i) =>
+    (i - 1) * @column_width + @padding_left, @padding_top
 
   draw: =>
     {:x,:y,:w, :h} = @
@@ -151,13 +145,30 @@ class HorizontalList extends BaseList
     g.push!
     g.translate @cursor_offset, 0
     for i, item in ipairs @items
-      @draw_column i, item
+      @draw_cell i, item
     g.pop!
 
-    -- cursor
-    MenuGroup.icons\draw 0, @column_offset(@selected_item) , @padding_top
+    @draw_cursor!
 
     g.pop!
+
+
+class ColumnList extends VerticalList
+  num_columns: 2
+
+  update_dimension: =>
+    max_column = math.ceil #@items / @num_columns
+    @inner_height = max_column * (@row_height + @row_spacing)
+    @column_width = math.floor @w / @num_columns
+
+  cell_offset: (i) =>
+    column = (i - 1) % @num_columns -- 0 indexed
+    row = math.floor (i - 1) / @num_columns
+
+    x = column * @column_width
+    y = row * (@row_height + @row_spacing)
+
+    x + @padding_left, y + @padding_top
 
 
 -- item: {name, type}
@@ -169,7 +180,7 @@ class ItemList extends VerticalList
     "glove"
   }
 
-  draw_row: (i, item) =>
+  draw_cell: (i, item) =>
     {name, item_type} = item
 
     y = (i - 1) * (@row_height + @row_spacing)
@@ -262,8 +273,8 @@ class MainMenuActions extends VerticalList
 
     DISPATCH\push @menus[item]
 
-  draw_row: (i, row) =>
-    x,y = 0, @row_offset i
+  draw_cell: (i, row) =>
+    x,y = @cell_offset i
 
     @ui_sprite\draw "0,0,63,17", x, y
     p row[1], x + 9, y + 5
@@ -352,7 +363,24 @@ class ItemsMenuTabs extends HorizontalList
 class ItemsMenu extends BaseMenu
   new: (@parent) =>
     super!
-    @add ItemsMenuTabs @, 10, 18, 300, 20
+    @add ColumnList {
+      "Anus"
+      "Anus"
+      "Anus"
+      "Anus"
+      "Anus"
+      "Anus"
+      "Anus"
+      "Anus"
+      "Anus"
+      "Anus"
+      "Anus"
+      "Anus"
+      "Anus"
+      "Anus"
+    }, 10, 45, 300, 127
+
+    -- @add ItemsMenuTabs @, 10, 18, 300, 20
 
   draw_inside: =>
     -- @draw_container 10, 45, 300, 127
