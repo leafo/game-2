@@ -189,11 +189,73 @@ class ItemList extends VerticalList
     MenuGroup.icons\draw @item_types[item_type], 0, y
     g.print name\lower!, @icon_padding, y + 1
 
-
 class MainMenu extends MenuGroup
+  lazy_value @, "tile_bg", ->
+    with imgfy "img/menu_tile.png"
+      \set_wrap "repeat", "repeat"
+
+  class GreenBar
+    lazy_value @, "ui_sprite", ->
+      Spriter "img/ui.png"
+
+    ox: 0, oy: 17
+
+    h: 7
+
+    new: (@x, @y, @w, @p=0.5) =>
+      {:ox, :oy, :h} = @
+
+      @quad_left_full = "#{ox},#{oy},3,7"
+      @quad_left_empty = "#{ox},#{oy + h},3,7"
+
+      @quad_right_full = "#{ox + 6},#{oy},3,7"
+      @quad_right_empty = "#{ox + 6},#{oy + h},3,7"
+
+      @quad_full = "#{ox + 3},#{oy},1,7"
+      @quad_empty = "#{ox + 3},#{oy + h},1,7 "
+
+    draw: =>
+      left = if @p == 0
+        @quad_left_empty
+      else
+        @quad_left_full
+
+      right = if @p == 1.0
+        @quad_right_full
+      else
+        @quad_right_empty
+
+      inner_width = @w - 6
+
+      @ui_sprite\draw left, @x, @y
+
+      fill_width = math.floor inner_width * @p
+
+      -- filled
+      if @p > 0
+        @ui_sprite\draw @quad_full, @x + 3, @y, 0, fill_width, 1
+
+      -- empty
+      if @p < 1
+        empty_width = inner_width - fill_width
+        @ui_sprite\draw @quad_empty, @x + 3 + fill_width, @y, 0, empty_width, 1
+
+
+      @ui_sprite\draw right, @x + @w - 3, @y
+
+  class RedBar extends GreenBar
+    ox: 9, oy: 17
+
+  class BlueBar extends GreenBar
+    ox: 18, oy: 17
+
   new: =>
     super!
     @viewport = Viewport scale: 2
+
+    @health_bar = RedBar 5,5, 80, 0
+    @mana_bar = BlueBar 5,15, 80, 0.5
+    @exp_bar = GreenBar 5,25, 80, 1.0
 
     @add ItemList {
       { "Good Sword", "sword" }
@@ -237,13 +299,35 @@ class MainMenu extends MenuGroup
     g.setColor 233,236,204, .25 * 255
     g.rectangle "fill", x,y + h - 1,w,1
 
+    g.setColor 255,255,255
+
+  draw_background: =>
+    @_tile_quad or= g.newQuad 0, 0, @viewport.w, @viewport.h, @tile_bg\width!, @tile_bg\height!
+    @tile_bg\drawq @_tile_quad, 0, 0
+
   draw: =>
     @viewport\apply!
+    @draw_background!
+    @draw_container 10,10, 100, 100
+    g.push!
+    g.translate 10,10
+
+    @health_bar\draw!
+    @mana_bar\draw!
+    @exp_bar\draw!
+
+    g.pop!
+
     super @viewport
 
-    @draw_container 10,10, 100, 100
-
     @viewport\pop!
+
+  update: (dt) =>
+    -- for bar in *{@health_bar, @mana_bar, @exp_bar}
+    --   bar.p += dt*2
+    --   bar.p = 0 if bar.p > 1
+
+    super dt
 
 class Game
   new: =>
@@ -299,7 +383,7 @@ love.load = ->
     "select2"
   }
 
-  dispatch = Dispatcher Game!
+  dispatch = Dispatcher MainMenu! -- Game!
   dispatch.default_transition = FadeTransition
   dispatch\bind love
 
