@@ -16,6 +16,10 @@ class BattleTransition extends Sequence
       @fade_out = true
       tween @, @time/4, p: 0
 
+  update: (dt) =>
+    @after\update dt if @fade_out
+    super dt
+
   draw: =>
     if @fade_out
       @after\draw!

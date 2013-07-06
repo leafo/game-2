@@ -150,6 +150,7 @@ love.load = ->
       if key == " "
         if snapper
           snapper\write!
+          snapper = nil
         else
           snapper = ScreenSnap!
 

@@ -502,13 +502,13 @@ class MainMenu extends BaseMenu
 
     @p = 0
     @effect = Sequence ->
-      tween @, 0.2, { p: 1.0 }, ease_out
+      tween @, 0.3, { p: 1.0 }, ease_out
       @effect = nil
 
   draw_inside: =>
     for i, s in ipairs @summaries
       g.push!
-      g.translate (1 - @p) * -(20 + i * 20) , 0
+      g.translate (1 - @p) * -(30 + i * 30) , 0
       s\draw!
       g.pop!
 
