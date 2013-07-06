@@ -21,8 +21,10 @@ export p = (str, ...) -> g.print str\lower!, ...
 class Player extends Entity
   lazy sprite: -> Spriter "img/characters.png", 16, 32
 
-  w: 10
-  h: 10
+  w: 12
+  h: 6
+
+  ox: 2, oy: 25
 
   speed: 80
 
@@ -56,15 +58,19 @@ class Player extends Entity
       }
 
   draw: =>
-    @sprite\draw 2, @x, @y -- draws shadow
-    @anim\draw @x, @y
+    @sprite\draw 2, @x - @ox, @y - @oy -- shadow
+    @anim\draw @x - @ox, @y - @oy
 
-  update: (dt) =>
+    Box.draw @, {255,128,128, 128}
+    g.setColor 255,255,255
+
+  update: (dt, world) =>
     @velocity = movement_vector @speed * dt
     @anim\set_state @direction_name!
 
-    @move unpack @velocity
+    {dx, dy} = @velocity
 
+    @fit_move dx, dy, world
     @anim\update dt
 
 
@@ -92,7 +98,7 @@ class Game
 
   update: (dt) =>
     reloader\update! if reloader
-    @player\update dt
+    @player\update dt, @map
 
   draw: =>
     @viewport\center_on_pt @player.x, @player.y, @map\to_box!

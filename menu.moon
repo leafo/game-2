@@ -496,12 +496,9 @@ class MainMenu extends BaseMenu
         .y = y
         y += CharacterSummary.h + @summary_margin
 
-
   draw_inside: =>
     for s in *@summaries
       s\draw!
-
-    @frame\draw!
 
   update: (dt) =>
     for s in *@summaries
