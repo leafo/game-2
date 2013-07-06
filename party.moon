@@ -24,7 +24,7 @@ class Character
   new: =>
     @equip = {}
     @calc_stats!
-  
+
   calc_stats: =>
     @mod_stats = setmetatable {}, __index: @
 

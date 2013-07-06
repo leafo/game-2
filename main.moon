@@ -5,6 +5,7 @@ require "lovekit.screen_snap"
 export reloader = require "lovekit.reloader"
 export moon = require "moon"
 
+export fonts = {}
 export DISPATCH
 export enum = (tbl) ->
   for k,v in pairs tbl
@@ -102,7 +103,7 @@ class Game
       when "x"
         DISPATCH\push @menu
       when "b"
-        DISPATCH\push Battle(@), BattleTransition
+        DISPATCH\push Battle(@)-- , BattleTransition
 
   update: (dt) =>
     reloader\update! if reloader
@@ -130,7 +131,12 @@ love.load = ->
   main_font = load_font "img/font.png",
     [[ abcdefghijklmnopqrstuvwxyz-1234567890!.,:;'"?$&/]]
 
+  thick_font = load_font "img/font_thick.png",
+    [[ abcdefghijklmnopqrstuvwxyz-1234567890!.,:;'"?$&/]]
+
   g.setFont main_font
+
+  fonts = { :main_font, :thick_font }
 
   export sfx = lovekit.audio.Audio "sound"
 
