@@ -37,5 +37,4 @@ class Party
     insert @characters, with Character!
       .name = "Arkeus"
 
-
 { :Party }

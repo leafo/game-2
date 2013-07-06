@@ -140,7 +140,7 @@ love.load = ->
 
   with DISPATCH = Dispatcher Game!
     .default_transition = FadeTransition
-    .default_transition = BattleTransition
+    -- .default_transition = BattleTransition
 
     .update = (dt) =>
       snapper\tick!  if snapper
