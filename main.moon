@@ -18,6 +18,7 @@ import insert from table
 import MainMenu from require "menu"
 import Party from require "party"
 import BattleTransition from require "transitions"
+import Battle from require "battle"
 
 export p = (str, ...) -> g.print str\lower!, ...
 
@@ -100,6 +101,8 @@ class Game
     switch key
       when "x"
         DISPATCH\push @menu
+      when "b"
+        DISPATCH\push Battle(@), BattleTransition
 
   update: (dt) =>
     reloader\update! if reloader
