@@ -5,7 +5,60 @@ import insert from table
 
 local *
 
--- holds a list of things that can be scrolled through
+-- like dispatch but for menus (or menu groups)
+-- sends input to the menu on the top
+-- draws all menus with states
+class MenuStack
+  new: =>
+    @menus = {}
+    @stack = {}
+
+  add: (name, menu) =>
+    @menus[name] = menu
+    unless next @stack
+      @push name
+
+  push: (name) =>
+    if top = @top!
+      top[@] = "pushed"
+
+    insert @stack, name
+    menu = assert @menus[name], "failed to push menu named: #{name}"
+    menu[@] = "active"
+
+  pop: =>
+    if top = @top!
+      top[@] = nil
+
+    with table.remove @stack
+      @top![@] = "active"
+
+  top: =>
+    name = @stack[#@stack]
+    return unless name
+    @menus[name]
+
+  on_key: (key) =>
+    top = @top!
+
+    if key == "x"
+      if #@stack > 1
+        @pop!
+        return true
+
+    if top = @top!
+      top\on_key key
+
+  draw: (v) =>
+    for _, menu in pairs @menus
+      menu\draw v, menu[@] or "inactive"
+
+  update: (dt) =>
+    for _, menu in pairs @menus
+      menu\update dt
+
+-- holds a list of menus that can be scrolled through
+-- TODO: should be a psedu menu of multiple menus with some spatial organization
 class MenuGroup
   lazy icons: -> Spriter "img/icons.png", 8
 
@@ -16,7 +69,7 @@ class MenuGroup
     insert @menus, menu
     @current_menu = 1 unless @current_menu
 
-  update: (...)=>
+  update: (...) =>
     m\update ... for m in *@menus
 
   draw: (...) =>
@@ -29,19 +82,35 @@ class MenuGroup
           sfx\play "blip2"
       return
 
-    menu = @menus[@current_menu]
+    @menus[@current_menu]\on_key key
 
+class BaseList extends Box
+  selected_item: 1
+
+  draw_cell: (i, item) =>
+    g.print tostring(item)\lower!, @cell_offset i
+
+  draw_cursor: (state="active") =>
+    return if state == "inactive"
+    g.setColor 255,255,255,128 if state == "pushed"
+    MenuGroup.icons\draw 0, @cell_offset @selected_item
+    g.setColor 255,255,255 if state == "pushed"
+
+  move_updown: (dp) => @move dp
+  move_leftright: (dp) => false
+
+  on_key: (key) =>
     moved = switch key
       when "up"
-        menu\move_updown -1
+        @move_updown -1
       when "down"
-        menu\move_updown 1
+        @move_updown 1
       when "left"
-        menu\move_leftright -1
+        @move_leftright -1
       when "right"
-        menu\move_leftright 1
+        @move_leftright 1
       when "z", "return"
-        if menu\on_select!
+        if @on_select!
           sfx\play "select2"
         nil
 
@@ -51,17 +120,7 @@ class MenuGroup
       else
         sfx\play "blip2"
 
-class BaseList extends Box
-  selected_item: 1
-
-  draw_cell: (i, item) =>
-    g.print tostring(item)\lower!, @cell_offset i
-
-  draw_cursor: =>
-    MenuGroup.icons\draw 0, @cell_offset @selected_item
-
-  move_updown: (dp) => @move dp
-  move_leftright: (dp) => false
+    moved
 
   move: (dp) =>
     new_pos = @selected_item + dp
@@ -100,7 +159,7 @@ class VerticalList extends BaseList
   draw_scrollbar: (w, h) =>
     return if @inner_height <= h
 
-  draw: (v) =>
+  draw: (v, state) =>
     x,y,w,h = @unpack!
 
     g.push!
@@ -120,7 +179,7 @@ class VerticalList extends BaseList
       @draw_cell i, item
     g.pop!
 
-    @draw_cursor!
+    @draw_cursor state
     @draw_scrollbar w, h
 
     g.pop!
@@ -143,7 +202,7 @@ class HorizontalList extends BaseList
   move_updown: (dp) => false
   move_leftright: (dp) => @move dp
 
-  draw: =>
+  draw: (v, state) =>
     {:x,:y,:w, :h} = @
     g.push!
     g.translate x,y
@@ -157,7 +216,7 @@ class HorizontalList extends BaseList
       @draw_cell i, item
     g.pop!
 
-    @draw_cursor!
+    @draw_cursor state
 
     g.pop!
 
@@ -210,6 +269,9 @@ class ItemList extends ColumnList
     "sword", "staff", "potion", "shield", "armor", "boot", "helmet", "ring",
     "glove"
   }
+
+  on_select: =>
+    sfx\play "blip2"
 
   draw_cell: (i, item) =>
     {name, item_type} = item
@@ -317,7 +379,7 @@ class MainMenuActions extends VerticalList
     @menus = {}
 
 
-class BaseMenu extends MenuGroup
+class BaseMenu extends MenuStack
   lazy {
     ui_sprite: -> Spriter "img/ui.png"
     tile_bg: ->
@@ -344,12 +406,10 @@ class BaseMenu extends MenuGroup
     @viewport\pop!
 
   on_key: (key, code) =>
-    switch key
-      when "x"
+    unless super key, code
+      if key == "x"
         DISPATCH\pop!
         return true
-
-    super key, code
 
   draw_inside: => -- override me
 
@@ -379,22 +439,28 @@ class ItemsMenuTabs extends HorizontalList
 
   new: (@parent, ...) =>
     super {
-      "Use"
-      "Sort"
-      "Rare"
+      { "Use", "use" }
+      { "Sort", "sort" }
+      { "Rare", "rare" }
     }, ...
 
   draw_frame: =>
     @parent\draw_container 0,0, @w, @h
 
-  on_select: (item) =>
+  draw_cell: (i, item) =>
+    super i, item[1]
 
+  on_select: =>
+    name = @items[@selected_item][2]
+    @parent\push name
 
 class ItemsMenu extends BaseMenu
   new: (@parent) =>
     super!
 
-    @add ItemList @, {
+    @add "tabs", ItemsMenuTabs @, 10, 18, 300, 20
+
+    @add "use", ItemList @, {
       { "Good Sword", "sword" }
       { "Death Bringer", "sword" }
       { "Wallshield", "shield" }
@@ -406,9 +472,6 @@ class ItemsMenu extends BaseMenu
       { "Thick Hands", "glove" }
     }, 10, 45, 300, 127
 
-
-    @add ItemsMenuTabs @, 10, 18, 300, 20
-
   draw_inside: =>
     -- @draw_container 10, 45, 300, 127
 
@@ -418,13 +481,7 @@ class MainMenu extends BaseMenu
 
   new: (@party) =>
     super!
-    @add MainMenuActions @, 219, 10, 91, 119
-
-    -- @add VerticalList {
-    --   "Hello"
-    --   "World"
-    --   "Catnip"
-    -- }, 180, 10, 120, 140
+    @add "main", MainMenuActions @, 219, 10, 91, 119
 
   on_show: (dispatch) =>
     @game = dispatch\parent!
