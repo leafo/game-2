@@ -5,6 +5,10 @@ import insert from table
 
 import Frame from require "dialog"
 
+ease_out = do
+  import sqrt from math
+  (a, b, t) -> sqrt a + (b - a) * t
+
 local *
 
 -- like dispatch but for menus (or menu groups)
@@ -496,11 +500,20 @@ class MainMenu extends BaseMenu
         .y = y
         y += CharacterSummary.h + @summary_margin
 
+    @p = 0
+    @effect = Sequence ->
+      tween @, 0.2, { p: 1.0 }, ease_out
+      @effect = nil
+
   draw_inside: =>
-    for s in *@summaries
+    for i, s in ipairs @summaries
+      g.push!
+      g.translate (1 - @p) * -(20 + i * 20) , 0
       s\draw!
+      g.pop!
 
   update: (dt) =>
+    @effect\update dt if @effect
     for s in *@summaries
       s\update dt
 
