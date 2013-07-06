@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="20" height="12" tilewidth="16" tileheight="16">
+ <tileset firstgid="1" source="tiles1.tsx"/>
+ <layer name="bg" width="20" height="12">
+  <data encoding="base64" compression="zlib">
+   eJxjZGBgYBzFo3gUY8WsgxwDAPrvAZE=
+  </data>
+ </layer>
+ <layer name="ground" width="20" height="12">
+  <data encoding="base64" compression="zlib">
+   eJxjYEAAJiBmBmIWBsIAl1pmJMwFxNxAzIMmzoKkn5BabjQsjUWMB0k/IbXSRGBS1BKDk6F41Dz6mxdFgnnY1Eah4UQsYrgwNrUgsSQkmgGNj49mwCIOAPHVIe4=
+  </data>
+ </layer>
+ <layer name="float" width="20" height="12">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFo2BwACYgZgZiFgrUMiNhLqgYD5o4NoxL7WAHAFtQAGk=
+  </data>
+ </layer>
+</map>

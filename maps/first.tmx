@@ -3,9 +3,7 @@
  <properties>
   <property name="invert_collision" value="true"/>
  </properties>
- <tileset firstgid="1" name="tiles1" tilewidth="16" tileheight="16">
-  <image source="../img/tiles1.png" width="128" height="512"/>
- </tileset>
+ <tileset firstgid="1" source="tiles1.tsx"/>
  <layer name="background" width="30" height="20">
   <data encoding="base64" compression="zlib">
    eJxjZGBgYBzFo5hMzIoDj9o7ai+pZhOykxJ78ZlJDB4K9lJq16i9I9teapo/iiEYAGnrBk0=
