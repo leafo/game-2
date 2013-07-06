@@ -3,17 +3,22 @@
  <tileset firstgid="1" source="tiles1.tsx"/>
  <layer name="bg" width="20" height="12">
   <data encoding="base64" compression="zlib">
-   eJxjZGBgYBzFo3gUY8WsgxwDAPrvAZE=
+   eJxjZGBgYBzFwxazjuJhjQGNjQLR
   </data>
  </layer>
  <layer name="ground" width="20" height="12">
   <data encoding="base64" compression="zlib">
-   eJxjYEAAJiBmBmIWBsIAl1pmJMwFxNxAzIMmzoKkn5BabjQsjUWMB0k/IbXSRGBS1BKDk6F41Dz6mxdFgnnY1Eah4UQsYrgwNrUgsSQkmgGNj49mwCIOAPHVIe4=
+   eJxjYEAAJiBmBmIWBsIAl1pmJMwFxNxAzIMmzoKkn5BabjQsjUWMB0k/IbXSRGBS1BKDk6F41DxMHIWGsYnhwtjUJgJxEhIdhcbHR2PTjw4SsYjhAqSoJRcAAIhZHQI=
   </data>
  </layer>
  <layer name="float" width="20" height="12">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFo2BwACYgZgZiFgrUMiNhLqgYD5o4NoxL7WAHAFtQAGk=
+   eJxjYBgFo4B4wIyGWbCI4cJMWMTQgRwJbiFF7XAFAJrcAHk=
+  </data>
+ </layer>
+ <layer name="float2" width="20" height="12">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFo4B8wESCWhaauWLkAgAMEAAH
   </data>
  </layer>
 </map>

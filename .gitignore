@@ -1,3 +1,4 @@
 lovekit
 *.lua
 .tup
+!maps/*.lua
