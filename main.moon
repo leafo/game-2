@@ -10,7 +10,7 @@ export enum = (tbl) ->
   tbl
 
 import insert from table
-{graphics: g} = love
+{graphics: g, :timer} = love
 {:min, :max} = math
 
 import MainMenu from require "menu"
@@ -103,6 +103,8 @@ class Game
     @player\draw!
 
     @viewport\pop!
+
+    p "FPS: #{timer.getFPS!}", 5, 5
 
 load_font = (img, chars)->
   font_image = imgfy img
