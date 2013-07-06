@@ -1,5 +1,7 @@
 
 require "lovekit.all"
+require "lovekit.screen_snap"
+
 export reloader = require "lovekit.reloader"
 export moon = require "moon"
 
@@ -18,6 +20,8 @@ import Party from require "party"
 import BattleTransition from require "battle"
 
 export p = (str, ...) -> g.print str\lower!, ...
+
+local snapper
 
 class Player extends Entity
   lazy sprite: -> Spriter "img/characters.png", 16, 32
@@ -137,5 +141,21 @@ love.load = ->
   with DISPATCH = Dispatcher Game!
     .default_transition = FadeTransition
     .default_transition = BattleTransition
+
+    .update = (dt) =>
+      snapper\tick!  if snapper
+      Dispatcher.update @, dt
+
+    .keypressed = (key, code) =>
+      if key == " "
+        if snapper
+          snapper\write!
+        else
+          snapper = ScreenSnap!
+
+      Dispatcher.keypressed @, key, code
+
     \bind love
+
+
 
