@@ -17,7 +17,7 @@ import insert from table
 
 import MainMenu from require "menu"
 import Party from require "party"
-import BattleTransition from require "battle"
+import BattleTransition from require "transitions"
 
 export p = (str, ...) -> g.print str\lower!, ...
 
