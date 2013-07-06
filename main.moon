@@ -15,6 +15,7 @@ import insert from table
 
 import MainMenu from require "menu"
 import Party from require "party"
+import BattleTransition from require "battle"
 
 export p = (str, ...) -> g.print str\lower!, ...
 
@@ -61,8 +62,8 @@ class Player extends Entity
     @sprite\draw 2, @x - @ox, @y - @oy -- shadow
     @anim\draw @x - @ox, @y - @oy
 
-    Box.draw @, {255,128,128, 128}
-    g.setColor 255,255,255
+    -- Box.draw @, {255,128,128, 128}
+    -- g.setColor 255,255,255
 
   update: (dt, world) =>
     @velocity = movement_vector @speed * dt
@@ -125,6 +126,7 @@ love.load = ->
   g.setFont main_font
 
   export sfx = lovekit.audio.Audio "sound"
+
   sfx\preload {
     "blip1"
     "blip2"
@@ -134,5 +136,6 @@ love.load = ->
 
   with DISPATCH = Dispatcher Game!
     .default_transition = FadeTransition
+    .default_transition = BattleTransition
     \bind love
 
