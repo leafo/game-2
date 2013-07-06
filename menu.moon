@@ -3,6 +3,8 @@ import insert from table
 {graphics: g} = love
 {:min, :max} = math
 
+import Frame from require "dialog"
+
 local *
 
 -- like dispatch but for menus (or menu groups)
@@ -395,13 +397,13 @@ class BaseMenu extends MenuStack
     @viewport\apply!
     @draw_background!
 
-    @draw_inside!
-
     super @viewport
 
     @ui_sprite\draw "63,0,37,11", 0,0
     p "help", 5,1
     p "use or trash items", 40, 2
+
+    @draw_inside!
 
     @viewport\pop!
 
@@ -452,6 +454,7 @@ class ItemsMenuTabs extends HorizontalList
 
   on_select: =>
     name = @items[@selected_item][2]
+    sfx\play "select2"
     @parent\push name
 
 class ItemsMenu extends BaseMenu
@@ -497,6 +500,8 @@ class MainMenu extends BaseMenu
   draw_inside: =>
     for s in *@summaries
       s\draw!
+
+    @frame\draw!
 
   update: (dt) =>
     for s in *@summaries
