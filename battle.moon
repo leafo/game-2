@@ -3,10 +3,9 @@ import insert from table
 {graphics: g} = love
 {:min, :max} = math
 
-import Frame, RedBar, BlueBar from require "dialog"
+import Frame, RedBar, BlueBar, VerticalList, MenuStack from require "dialog"
 
 local *
-
 
 class CharacterFrame extends Frame
   new: (@char) =>
@@ -27,13 +26,24 @@ class CharacterFrame extends Frame
 
   update: (dt) =>
 
-class Battle
+class ActionsMenu extends VerticalList
+  new: (...) =>
+    super {
+      "Attack"
+      "Defend"
+      "Magic"
+    }, ...
+
+class Battle extends MenuStack
   viewport: Viewport scale: 2
 
   frame_pos: {200, 10}
 
   new: (@game) =>
+    super!
     @map = TileMap.from_tiled "maps.battle"
+
+    @add "actions", ActionsMenu 10, 10, 100, 100
 
     @frames = for char in *@game.party.characters
       CharacterFrame char
@@ -43,13 +53,18 @@ class Battle
       DISPATCH\pop!
       return true
 
+    super key
+
   update: (dt) =>
+    super dt
     for frame in *@frames
       frame\update dt
 
   draw: =>
     @viewport\apply!
     @map\draw!
+
+    super @viewport
 
     g.push!
     g.translate unpack @frame_pos

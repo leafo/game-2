@@ -179,10 +179,11 @@ class VerticalList extends BaseList
 
     @draw_frame!
 
-    vx, vy = v\project x,y
-    vw, vh = v\project w,h
+    if v
+      vx, vy = v\project x,y
+      vw, vh = v\project w,h
 
-    g.setScissor vx,vy,vw,vh
+      g.setScissor vx,vy,vw,vh
 
     -- draw items
     g.push!
@@ -195,7 +196,8 @@ class VerticalList extends BaseList
     @draw_scrollbar w, h
 
     g.pop!
-    g.setScissor!
+    if v
+      g.setScissor!
 
 
 class HorizontalList extends BaseList
