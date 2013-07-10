@@ -8,6 +8,8 @@ ui = require "lovekit.ui"
 local *
 
 class Frame extends ui.Frame
+  padding: 4
+
   lazy sprite: =>
     with Spriter "img/ui.png", 4, 4, 4
       .ox = 63
@@ -15,7 +17,6 @@ class Frame extends ui.Frame
 
   new: (...) =>
     super nil, ...
-
 
 -- like dispatch but for menus (or menu groups)
 -- sends input to the menu on the top

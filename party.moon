@@ -37,4 +37,11 @@ class Party
     insert @characters, with Character!
       .name = "Arkeus"
 
+    insert @characters, with Character!
+      .name = "Leafo"
+
+    insert @characters, with Character!
+      .name = "Adam D."
+
+
 { :Party }

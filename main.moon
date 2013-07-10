@@ -1,8 +1,8 @@
 
 require "lovekit.all"
 require "lovekit.screen_snap"
+require "lovekit.reloader"
 
-export reloader = require "lovekit.reloader"
 export moon = require "moon"
 
 export fonts = {}
@@ -106,7 +106,6 @@ class Game
         DISPATCH\push Battle(@)-- , BattleTransition
 
   update: (dt) =>
-    reloader\update! if reloader
     @player\update dt, @map
 
   draw: =>
