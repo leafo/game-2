@@ -127,6 +127,26 @@ return {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
       }
+    },
+    {
+      type = "objectgroup",
+      name = "objects",
+      visible = true,
+      opacity = 1,
+      properties = {},
+      objects = {
+        {
+          name = "enemy_drop",
+          type = "",
+          shape = "rectangle",
+          x = 16,
+          y = 54,
+          width = 94,
+          height = 64,
+          visible = true,
+          properties = {}
+        }
+      }
     }
   }
 }

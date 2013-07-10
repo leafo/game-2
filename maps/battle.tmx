@@ -21,4 +21,7 @@
    eJxjYBgFo4B8wESCWhaauWLkAgAMEAAH
   </data>
  </layer>
+ <objectgroup name="objects" width="20" height="12">
+  <object name="enemy_drop" x="16" y="54" width="94" height="64"/>
+ </objectgroup>
 </map>

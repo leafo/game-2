@@ -64,12 +64,37 @@ class ActionsMenu extends VerticalList
     }, x,y,w,h
 
 
+class BattleEnemey extends Box
+  name: "Butt"
+  w: 10
+  h: 20
+
+  -- put x, y at feet
+  new: (x, y) =>
+    @x = x - @w / 2
+    @y = y - @h
+
+  draw: =>
+    g.setColor 255,0,0
+    g.rectangle "line", @unpack!
+    g.setColor 255,255,255
+
+  update: (dt) =>
+
 class Battle extends MenuStack
   viewport: Viewport scale: 2
 
   new: (@game) =>
     super!
-    @map = TileMap.from_tiled "maps.battle"
+    @map = TileMap.from_tiled "maps.battle", {
+      object: (obj) ->
+        if obj.name = "enemy_drop"
+          @enemy_drop = Box obj.x, obj.y, obj.width, obj.height
+    }
+
+    @enemies = for ex, ey in @distribute_enemies 2
+      print "Placing #{ex}, #{ey}"
+      BattleEnemey ex, ey
 
     @char_frame = CharacterFrame @, @game.party.characters
 
@@ -78,6 +103,17 @@ class Battle extends MenuStack
     @add "actions", ActionsMenu @, 5, @viewport\on_bottom(h, CharacterFrame.margin), w, h
 
     @frames = { @char_frame }
+
+  distribute_enemies: (num, box=@enemy_drop) =>
+    y = coroutine.yield
+    coroutine.wrap ->
+      switch num
+        when 1
+          y box\center!
+        when 2
+          cx, cy = box\center!
+          y cx, cy - box.w / 4
+          y cx, cy + box.w / 4
 
   on_key: (key) =>
     if key == "b"
@@ -91,6 +127,9 @@ class Battle extends MenuStack
     for frame in *@frames
       frame\update dt
 
+    for enemy in *@enemies
+      enemy\update dt
+
   draw: =>
     g.setFont fonts.thick_font
     @viewport\apply!
@@ -100,6 +139,9 @@ class Battle extends MenuStack
 
     for frame in *@frames
       frame\draw!
+
+    for enemy in *@enemies
+      enemy\draw!
 
     @viewport\pop!
     g.setFont fonts.main_font
