@@ -7,6 +7,19 @@ import Frame, RedBar, BlueBar, VerticalList, MenuStack from require "dialog"
 
 local *
 
+class BattleOrder
+  delay: (e) =>
+    1 / e.speed
+
+  new: (@entities) =>
+    @queue = {}
+
+  -- add all entities into queue and sort
+  seed: =>
+
+
+  elapse: =>
+
 class CharacterFrame extends Frame
   margin: 5
   char_width: 70
@@ -15,6 +28,8 @@ class CharacterFrame extends Frame
   new: (@parent, @chars) =>
     import viewport from @parent
     w = (@char_width * #@chars) + 8
+
+    moon.p @chars
 
     super viewport\on_right(w, @margin), viewport\on_bottom(@h, @margin), w, @h
 
@@ -115,6 +130,31 @@ class Battle extends MenuStack
           y cx, cy - box.w / 4
           y cx, cy + box.w / 4
 
+        when 3
+          cx, cy = box\center!
+          w4 = box.w / 4
+
+          y cx + w4, cy
+          y cx - w4, box.y
+          y cx - w4, box.y + box.h
+
+        when 4
+          cx, cy = box\center!
+          w4 = box.w / 4
+          h4 = box.h / 4
+
+
+          y cx - w4, cy - h4
+          y cx - w4, cy + h4
+
+          y cx + w4, cy - h4
+          y cx + w4, cy + h4
+
+
+        else
+          error "not yet"
+
+
   on_key: (key) =>
     if key == "b"
       DISPATCH\pop!
@@ -140,6 +180,7 @@ class Battle extends MenuStack
     for frame in *@frames
       frame\draw!
 
+    @enemy_drop\draw!
     for enemy in *@enemies
       enemy\draw!
 

@@ -21,6 +21,8 @@ class Character
 
   image: "16,64,16,32"
 
+  speed: 10
+
   new: =>
     @equip = {}
     @calc_stats!
