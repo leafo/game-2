@@ -49,6 +49,42 @@ class BattleOrder
     max_tuple.progress -= @capacity
     max_tuple.entity
 
+class OrderList extends Box
+  w: 280
+  h: 20
+  x: 35
+  y: 5
+
+  num_items: 5
+
+  new: (@parent) =>
+    @recalc!
+    moon.p @order
+
+  update: (dt) =>
+
+  draw_entity: (e) =>
+    g.setColor hash_to_color e.name
+    g.rectangle "fill", 0,0, 20, 20
+    g.setColor 255,255,255
+    p e.name\sub(1, 2), 2,2
+
+
+  draw: =>
+    p "Next", 5, 11
+    g.push!
+    g.translate @x, @y
+    for e in *@order
+      @draw_entity e
+      g.translate 25, 0
+
+    g.pop!
+
+  recalc: =>
+    order = BattleOrder @parent.order
+    @order = for i=1,@num_items
+      order\elapse!
+
 class CharacterFrame extends Frame
   margin: 5
   char_width: 70
@@ -57,8 +93,6 @@ class CharacterFrame extends Frame
   new: (@parent, @chars) =>
     import viewport from @parent
     w = (@char_width * #@chars) + 8
-
-    moon.p @chars
 
     super viewport\on_right(w, @margin), viewport\on_bottom(@h, @margin), w, @h
 
@@ -137,13 +171,20 @@ class Battle extends MenuStack
     @enemies = for ex, ey in @distribute_enemies 2
       BattleEnemey ex, ey
 
+    @order = BattleOrder @game.party.characters
+
     @char_frame = CharacterFrame @, @game.party.characters
 
     w = @viewport.w - @char_frame.w - 15
     h = CharacterFrame.h
     @add "actions", ActionsMenu @, 5, @viewport\on_bottom(h, CharacterFrame.margin), w, h
 
-    @frames = { @char_frame }
+    @order_list = OrderList @
+
+    @frames = {
+      @char_frame
+      @order_list
+    }
 
   distribute_enemies: (num, box=@enemy_drop) =>
     y = coroutine.yield
