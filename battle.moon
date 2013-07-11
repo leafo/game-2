@@ -20,7 +20,9 @@ class BattleOrder
 
   new: (@entities) =>
     @queue = if @entities.__class == BattleOrder
-      {k,v for k,v in pairs @entities.queue}
+      -- clone it
+      for {:progress, :entity} in *@entities.queue
+        {:progress, :entity}
     else
       for e in *@entities
         { progress: 0, entity: e }
@@ -133,7 +135,6 @@ class Battle extends MenuStack
     }
 
     @enemies = for ex, ey in @distribute_enemies 2
-      print "Placing #{ex}, #{ey}"
       BattleEnemey ex, ey
 
     @char_frame = CharacterFrame @, @game.party.characters
@@ -205,7 +206,6 @@ class Battle extends MenuStack
     for frame in *@frames
       frame\draw!
 
-    @enemy_drop\draw!
     for enemy in *@enemies
       enemy\draw!
 
