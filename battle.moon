@@ -69,7 +69,6 @@ class OrderList extends Box
     g.setColor 255,255,255
     p e.name\sub(1, 2), 2,2
 
-
   draw: =>
     p "Next", 5, 11
     g.push!
@@ -131,6 +130,9 @@ class ActionsMenu extends VerticalList
   draw_frame: =>
     @frame\draw!
 
+  on_select: (item) =>
+    @parent\elapse_turn item
+
   new: (@parent, x,y,w,h) =>
     @frame = Frame 0,0, w,h
     super {
@@ -139,6 +141,13 @@ class ActionsMenu extends VerticalList
       -- "Magic"
     }, x,y,w,h
 
+    @max_height = @h
+    @time = 0
+
+  update: (dt) =>
+    @time += dt * 2
+    @h = @max_height * math.abs(math.sin(@time))
+    @frame.h = @h
 
 class BattleEnemey extends Box
   name: "Butt"
@@ -177,6 +186,7 @@ class Battle extends MenuStack
 
     w = @viewport.w - @char_frame.w - 15
     h = CharacterFrame.h
+
     @add "actions", ActionsMenu @, 5, @viewport\on_bottom(h, CharacterFrame.margin), w, h
 
     @order_list = OrderList @
@@ -221,6 +231,9 @@ class Battle extends MenuStack
         else
           error "not yet"
 
+  elapse_turn: (action) =>
+    print "Running action", action, @order\elapse!
+    @order_list\recalc!
 
   on_key: (key) =>
     if key == "b"

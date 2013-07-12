@@ -123,7 +123,7 @@ class BaseList extends Box
       when "right"
         @move_leftright 1
       when "z", "return"
-        if @on_select!
+        if @on_select @items[@selected_item]
           sfx\play "select2"
         nil
 
