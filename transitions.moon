@@ -23,9 +23,9 @@ class BattleTransition extends Sequence
   draw: =>
     if @fade_out
       @after\draw!
-      g.setColor 255,255,255, @p * 255
+      COLOR\pusha @p * 255
       g.rectangle "fill", 0,0, g.getWidth!, g.getHeight!
-      g.setColor 255,255,255
+      COLOR\pop!
       return
 
     mid_x = g.getWidth!/2
@@ -37,9 +37,9 @@ class BattleTransition extends Sequence
       g.setBlendMode "multiplicative"
 
       g.setCanvas @canvas
-      g.setColor 20,20,20, 10
+      COLOR\push 20,20,20, 10
       g.draw @canvas, mid_x, mid_y, p2, 1 + @p, 1 + @p, mid_x, mid_y
-      g.setColor 255,255,255
+      COLOR\pop!
       g.setCanvas!
 
       g.setBlendMode bm
@@ -51,8 +51,8 @@ class BattleTransition extends Sequence
 
 
     g.draw @canvas, 0,0
-    g.setColor 255,255,255, p2 * 255
+    COLOR\pusha p2 * 255
     g.rectangle "fill", 0,0, g.getWidth!, g.getHeight!
-    g.setColor 255,255,255
+    COLOR\pop!
 
 { :BattleTransition }

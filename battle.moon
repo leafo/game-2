@@ -64,9 +64,9 @@ class OrderList extends Box
   update: (dt) =>
 
   draw_entity: (e) =>
-    g.setColor hash_to_color e.name
+    COLOR\push hash_to_color e.name
     g.rectangle "fill", 0,0, 20, 20
-    g.setColor 255,255,255
+    COLOR\pop!
     p e.name\sub(1, 2), 2,2
 
   draw: =>
@@ -178,9 +178,7 @@ class BattleEnemey extends Box
     @y = y - @h
 
   draw: =>
-    g.setColor 255,0,0
-    g.rectangle "line", @unpack!
-    g.setColor 255,255,255
+    @outline COLOR.red
 
   update: (dt) =>
 

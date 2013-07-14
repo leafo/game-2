@@ -38,9 +38,9 @@ class ItemList extends ColumnList
     {name, item_type} = item
     x,y = @cell_offset i
 
-    -- g.setColor 255,0,0,64
+    -- COLOR\push 255,0,0,64
     -- g.rectangle "fill", 0, y, 100, @row_height
-    -- g.setColor 255,255,255,255
+    -- COLOR\pop!
 
     MenuGroup.icons\draw @item_types[item_type], x, y
     g.print name\lower!, x + @icon_padding, y + 1
@@ -121,18 +121,18 @@ class BaseMenu extends MenuStack
 
   draw_container: (x,y,w,h) =>
     -- back
-    g.setColor 0,0,0, .09 * 255
+    COLOR\push 0,0,0, .09 * 255
     g.rectangle "fill", x,y,w,h
 
     -- top line
-    g.setColor 0,0,0, .25 * 255
+    COLOR\set 0,0,0, .25 * 255
     g.rectangle "fill", x,y,w,1
 
     -- bottom line
-    g.setColor 233,236,204, .25 * 255
+    COLOR\set 233,236,204, .25 * 255
     g.rectangle "fill", x,y + h - 1,w,1
 
-    g.setColor 255,255,255
+    COLOR\pop!
 
   draw_background: =>
     @_tile_quad or= g.newQuad 0, 0, @viewport.w, @viewport.h, @tile_bg\width!, @tile_bg\height!
@@ -258,14 +258,13 @@ class CharacterSummary extends Box
     p @char.name, unpack @name_pos
     @char.sprite\draw @char.image, unpack @image_pos
 
-    g.setColor unpack @label_color
+    COLOR\push @label_color
     p "Lv:", unpack @lv_pos
     p "Exp:", unpack @exp_pos
 
     p "HP:", unpack @hp_pos
     p "MP:", unpack @mp_pos
-
-    g.setColor 255, 255, 255
+    COLOR\pop!
 
     p tostring(@char.level), unpack @lv_val_pos
     p "#{@char.exp}/#{@char.exp_next}", unpack @exp_val_pos

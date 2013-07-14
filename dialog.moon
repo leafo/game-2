@@ -105,9 +105,9 @@ class BaseList extends Box
 
   draw_cursor: (state="active") =>
     return if state == "inactive"
-    g.setColor 255,255,255,128 if state == "pushed"
+    COLOR\pusha 128 if state == "pushed"
     MenuGroup.icons\draw 0, @cell_offset @selected_item
-    g.setColor 255,255,255 if state == "pushed"
+    COLOR\pop! if state == "pushed"
 
   move_updown: (dp) => @move dp
   move_leftright: (dp) => false
@@ -146,9 +146,9 @@ class BaseList extends Box
   update: (dt) =>
 
   draw_frame: =>
-    g.setColor 255,255,255,20
+    COLOR\pusha 20
     g.rectangle "fill", 0,0, @w, @h
-    g.setColor 255,255,255
+    COLOR\pop!
 
 class VerticalList extends BaseList
   row_height: 8

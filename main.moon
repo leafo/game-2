@@ -69,7 +69,6 @@ class Player extends Entity
     @anim\draw @x - @ox, @y - @oy
 
     -- Box.draw @, {255,128,128, 128}
-    -- g.setColor 255,255,255
 
   update: (dt, world) =>
     @velocity = movement_vector @speed * dt
