@@ -124,8 +124,12 @@ class CharacterFrame extends Frame
   update: (dt) =>
 
 class ActionsMenu extends VerticalList
+  mixin Sequenced
+
   padding_top: Frame.padding
   padding_left: Frame.padding
+
+  alpha: 255
 
   draw_frame: =>
     @frame\draw!
@@ -142,12 +146,26 @@ class ActionsMenu extends VerticalList
     }, x,y,w,h
 
     @max_height = @h
-    @time = 0
+
+  slide_up: =>
+    @add_seq Sequence ->
+      @disabled = true
+      tween @, 0.1, h: 0
+      @hidden = true
+
+  slide_down: =>
+    @add_seq Sequence ->
+      @disabled = false
+      @hidden = false
+      tween @, 0.1, h: @max_height
 
   update: (dt) =>
-    @time += dt * 2
-    @h = @max_height * math.abs(math.sin(@time))
     @frame.h = @h
+
+  draw: (...) =>
+    return if @hidden
+    super ...
+
 
 class BattleEnemey extends Box
   name: "Butt"
@@ -239,6 +257,14 @@ class Battle extends MenuStack
     if key == "b"
       DISPATCH\pop!
       return true
+
+    if key == "t"
+      print "toggle menu"
+      @menus.actions\slide_up!
+
+    if key == "y"
+      print "toggle menu"
+      @menus.actions\slide_down!
 
     super key
 
