@@ -32,19 +32,28 @@ class MenuStack
       @push name
 
   push: (name) =>
-    if top = @top!
+    top = @top!
+    menu = assert @menus[name], "failed to push menu named: #{name}"
+
+    if top
       top[@] = "pushed"
+      top.on_pushed if top.on_pushed
 
     insert @stack, name
-    menu = assert @menus[name], "failed to push menu named: #{name}"
+
+    menu\on_active true, top if menu.on_active
     menu[@] = "active"
+    menu
 
   pop: =>
     if top = @top!
       top[@] = nil
+      top\on_inactive! if top.on_inactive
 
     with table.remove @stack
-      @top![@] = "active"
+      new_top = @top!
+      new_top\on_active false if new_top.on_active
+      new_top[@] = "active"
 
   top: =>
     name = @stack[#@stack]
@@ -108,6 +117,8 @@ class BaseList extends Box
     COLOR\pusha 128 if state == "pushed"
     MenuGroup.icons\draw 0, @cell_offset @selected_item
     COLOR\pop! if state == "pushed"
+
+  cell_offset: => error "override me"
 
   move_updown: (dp) => @move dp
   move_leftright: (dp) => false
