@@ -23,5 +23,6 @@
  </layer>
  <objectgroup name="objects" width="20" height="12">
   <object name="enemy_drop" x="16" y="54" width="94" height="64"/>
+  <object name="character_drop" x="206" y="56" width="80" height="64"/>
  </objectgroup>
 </map>

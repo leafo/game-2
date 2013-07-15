@@ -145,6 +145,17 @@ return {
           height = 64,
           visible = true,
           properties = {}
+        },
+        {
+          name = "character_drop",
+          type = "",
+          shape = "rectangle",
+          x = 206,
+          y = 56,
+          width = 80,
+          height = 64,
+          visible = true,
+          properties = {}
         }
       }
     }

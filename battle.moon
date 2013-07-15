@@ -130,6 +130,7 @@ class ActionsMenu extends VerticalList
   padding_left: Frame.padding
 
   alpha: 255
+  fade_time: 0.2
 
   draw_frame: =>
     @frame\draw!
@@ -150,21 +151,27 @@ class ActionsMenu extends VerticalList
   slide_up: =>
     @add_seq Sequence ->
       @disabled = true
-      tween @, 0.1, h: 0
+      tween @, @fade_time, h: 0, alpha: 0
       @hidden = true
 
   slide_down: =>
     @add_seq Sequence ->
       @disabled = false
       @hidden = false
-      tween @, 0.1, h: @max_height
+      tween @, @fade_time, h: @max_height, alpha: 255
 
   update: (dt) =>
     @frame.h = @h
 
-  draw: (...) =>
+  on_key: (...) =>
     return if @hidden
     super ...
+
+  draw: (...) =>
+    return if @hidden
+    COLOR\pusha @alpha
+    super ...
+    COLOR\pop!
 
 
 class BattleEnemey extends Box
@@ -182,6 +189,20 @@ class BattleEnemey extends Box
 
   update: (dt) =>
 
+class BattleCharacter extends Box
+  w: 10
+  h: 20
+
+  new: (@char, x, y) =>
+    @name = @char.name
+    @x = x - @w / 2
+    @y = y - @h
+
+  draw: =>
+    @outline COLOR.green
+
+  update: (dt) =>
+
 class Battle extends MenuStack
   viewport: Viewport scale: 2
 
@@ -189,12 +210,19 @@ class Battle extends MenuStack
     super!
     @map = TileMap.from_tiled "maps.battle", {
       object: (obj) ->
-        if obj.name = "enemy_drop"
-          @enemy_drop = Box obj.x, obj.y, obj.width, obj.height
+        switch obj.name
+          when "enemy_drop"
+            @enemy_drop = Box obj.x, obj.y, obj.width, obj.height
+          when "character_drop"
+            @character_drop = Box obj.x, obj.y, obj.width, obj.height
     }
 
-    @enemies = for ex, ey in @distribute_enemies 2
+    @enemies = for ex, ey in @distribute 2, @enemy_drop
       BattleEnemey ex, ey
+
+    char_pos = @distribute #@game.party.characters, @character_drop, true
+    @chars = for char in *@game.party.characters
+      BattleCharacter char, char_pos!
 
     @order = BattleOrder @game.party.characters
 
@@ -203,7 +231,8 @@ class Battle extends MenuStack
     w = @viewport.w - @char_frame.w - 15
     h = CharacterFrame.h
 
-    @add "actions", ActionsMenu @, 5, @viewport\on_bottom(h, CharacterFrame.margin), w, h
+    @add "actions",
+      ActionsMenu @, 5, @viewport\on_bottom(h, CharacterFrame.margin), w, h
 
     @order_list = OrderList @
 
@@ -212,8 +241,13 @@ class Battle extends MenuStack
       @order_list
     }
 
-  distribute_enemies: (num, box=@enemy_drop) =>
+  distribute: (num, box, flip_x=false) =>
     y = coroutine.yield
+    if flip_x
+      cx = box\center!
+      y = (x,y) ->
+        coroutine.yield cx + (cx - x), y
+
     coroutine.wrap ->
       switch num
         when 1
@@ -245,7 +279,7 @@ class Battle extends MenuStack
 
 
         else
-          error "not yet"
+          error "don't know how to distribute #{num} entities"
 
   elapse_turn: (action) =>
     print "Running action", action, @order\elapse!
@@ -268,11 +302,8 @@ class Battle extends MenuStack
 
   update: (dt) =>
     super dt
-    for frame in *@frames
-      frame\update dt
-
-    for enemy in *@enemies
-      enemy\update dt
+    for item in all_values @frames, @enemies, @chars
+      item\update dt
 
   draw: =>
     g.setFont fonts.thick_font
@@ -281,11 +312,8 @@ class Battle extends MenuStack
 
     super @viewport
 
-    for frame in *@frames
-      frame\draw!
-
-    for enemy in *@enemies
-      enemy\draw!
+    for item in all_values @frames, @enemies, @chars
+      item\draw!
 
     @viewport\pop!
     g.setFont fonts.main_font
