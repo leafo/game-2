@@ -3,7 +3,9 @@ import insert from table
 {graphics: g} = love
 {:min, :max} = math
 
-import Frame, RedBar, BlueBar, VerticalList, MenuStack from require "dialog"
+import
+  Frame, RedBar, BlueBar, VerticalList, MenuStack, BaseList
+  from require "dialog"
 
 local *
 
@@ -138,23 +140,36 @@ class ActionsMenu extends VerticalList
   on_select: (item) =>
     @parent\elapse_turn item
 
-  new: (@parent, x,y,w,h) =>
-    @frame = Frame 0,0, w,h
+  x: 5
+  y: 140
+  w: 87
+  h: 35
+
+  new: (@parent) =>
+    @frame = Frame 0,0, @w, @h
     super {
       "Attack"
       "Defend"
       -- "Magic"
-    }, x,y,w,h
+    }
 
     @max_height = @h
+    -- @hide true
 
-  slide_up: =>
+  hide: (immediate=false) =>
+    if immediate
+      @h = 0
+      @alpha = 0
+      @hidden = true
+      @disabled = true
+      return
+
     @add_seq Sequence ->
       @disabled = true
       tween @, @fade_time, h: 0, alpha: 0
       @hidden = true
 
-  slide_down: =>
+  show: =>
     @add_seq Sequence ->
       @disabled = false
       @hidden = false
@@ -174,13 +189,13 @@ class ActionsMenu extends VerticalList
     COLOR\pop!
 
 
-class BattleEnemey extends Box
+class BattleEnemy extends Box
   name: "Butt"
   w: 10
   h: 20
 
   -- put x, y at feet
-  new: (x, y) =>
+  new: (_, x, y) =>
     @x = x - @w / 2
     @y = y - @h
 
@@ -203,45 +218,32 @@ class BattleCharacter extends Box
 
   update: (dt) =>
 
-class Battle extends MenuStack
-  viewport: Viewport scale: 2
 
-  new: (@game) =>
-    super!
-    @map = TileMap.from_tiled "maps.battle", {
-      object: (obj) ->
-        switch obj.name
-          when "enemy_drop"
-            @enemy_drop = Box obj.x, obj.y, obj.width, obj.height
-          when "character_drop"
-            @character_drop = Box obj.x, obj.y, obj.width, obj.height
-    }
+-- a group of things on the field, like the group of players or the group of
+-- enemies
+class EntityGroup extends BaseList
+  flip_x: false
 
-    @enemies = for ex, ey in @distribute 2, @enemy_drop
-      BattleEnemey ex, ey
+  new: (...) =>
+    super ...
+    @items = {} -- is overwritten
 
-    char_pos = @distribute #@game.party.characters, @character_drop, true
-    @chars = for char in *@game.party.characters
-      BattleCharacter char, char_pos!
+  draw: =>
+    for e in *@items
+      e\draw!
 
-    @order = BattleOrder @game.party.characters
+  update: (dt) =>
+    for e in *@items
+      e\update dt
 
-    @char_frame = CharacterFrame @, @game.party.characters
+  add: (items) =>
+    cls = @etype
+    pos = @distribute #items, @
 
-    w = @viewport.w - @char_frame.w - 15
-    h = CharacterFrame.h
+    @items = for item in *items
+      cls item, pos!
 
-    @add "actions",
-      ActionsMenu @, 5, @viewport\on_bottom(h, CharacterFrame.margin), w, h
-
-    @order_list = OrderList @
-
-    @frames = {
-      @char_frame
-      @order_list
-    }
-
-  distribute: (num, box, flip_x=false) =>
+  distribute: (num, box, flip_x=@flip_x) =>
     y = coroutine.yield
     if flip_x
       cx = box\center!
@@ -281,29 +283,66 @@ class Battle extends MenuStack
         else
           error "don't know how to distribute #{num} entities"
 
+class EnemyGroup extends EntityGroup
+  etype: BattleEnemy
+
+class CharacterGroup extends EntityGroup
+  flip_x: true
+  etype: BattleCharacter
+
+class Battle extends MenuStack
+  viewport: Viewport scale: 2
+
+  new: (@game) =>
+    super!
+    @map = TileMap.from_tiled "maps.battle", {
+      object: (obj) ->
+        switch obj.name
+          when "enemy_drop"
+            @enemy_group = EnemyGroup obj.x, obj.y, obj.width, obj.height
+          when "character_drop"
+            @char_group = CharacterGroup obj.x, obj.y, obj.width, obj.height
+    }
+
+    assert @enemy_group, "Failed to create enemy group"
+    assert @char_group, "Failed to create character group"
+
+    @enemy_group\add { {}, {} }
+    @char_group\add @game.party.characters
+
+    @order = BattleOrder @game.party.characters
+    @char_frame = CharacterFrame @, @game.party.characters
+
+    @add "actions", ActionsMenu @
+    @add "characters", @char_group
+    @add "enemies", @enemy_group
+
+    @order_list = OrderList @
+
+    @frames = {
+      @char_frame
+      @order_list
+    }
+
+
   elapse_turn: (action) =>
-    print "Running action", action, @order\elapse!
-    @order_list\recalc!
+    print "Running action", action
+
+    -- print "Running action", action, @order\elapse!
+    -- @order_list\recalc!
 
   on_key: (key) =>
     if key == "b"
       DISPATCH\pop!
       return true
 
-    if key == "t"
-      print "toggle menu"
-      @menus.actions\slide_up!
-
-    if key == "y"
-      print "toggle menu"
-      @menus.actions\slide_down!
-
     super key
 
   update: (dt) =>
     super dt
-    for item in all_values @frames, @enemies, @chars
-      item\update dt
+
+    for f in *@frames
+      f\update dt
 
   draw: =>
     g.setFont fonts.thick_font
@@ -312,8 +351,8 @@ class Battle extends MenuStack
 
     super @viewport
 
-    for item in all_values @frames, @enemies, @chars
-      item\draw!
+    for f in *@frames
+      f\draw!
 
     @viewport\pop!
     g.setFont fonts.main_font
