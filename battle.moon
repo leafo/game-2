@@ -61,7 +61,6 @@ class OrderList extends Box
 
   new: (@parent) =>
     @recalc!
-    moon.p @order
 
   update: (dt) =>
 
@@ -138,7 +137,10 @@ class ActionsMenu extends VerticalList
     @frame\draw!
 
   on_select: (item) =>
-    @parent\elapse_turn item
+    print "On select"
+    menu = @parent\push "enemies"
+    menu.on_select = (enemy) =>
+      @parent\elapse_turn item, enemy
 
   x: 5
   y: 140
@@ -177,10 +179,6 @@ class ActionsMenu extends VerticalList
 
   update: (dt) =>
     @frame.h = @h
-
-  on_key: (...) =>
-    return if @hidden
-    super ...
 
   draw: (...) =>
     return if @hidden
@@ -228,13 +226,19 @@ class EntityGroup extends BaseList
     super ...
     @items = {} -- is overwritten
 
-  draw: =>
+  draw: (v, state) =>
     for e in *@items
       e\draw!
+
+    @draw_cursor state
 
   update: (dt) =>
     for e in *@items
       e\update dt
+
+  cell_offset: (i) =>
+    item = @items[i]
+    item.x - 10, item.y
 
   add: (items) =>
     cls = @etype
@@ -291,6 +295,8 @@ class CharacterGroup extends EntityGroup
   etype: BattleCharacter
 
 class Battle extends MenuStack
+  mixin Sequenced
+
   viewport: Viewport scale: 2
 
   new: (@game) =>
@@ -324,12 +330,27 @@ class Battle extends MenuStack
       @order_list
     }
 
+    @add_seq ->
+      print "waiting forever"
+      -- this is broken!
+      wait_until ->
+        love.keyboard.isDown "p"
 
-  elapse_turn: (action) =>
-    print "Running action", action
+      print "done waiting"
+      again!
 
-    -- print "Running action", action, @order\elapse!
-    -- @order_list\recalc!
+    -- this is what our sequence should look like
+    seq = ->
+      while true
+        actor = get_next_actor!
+        menu = show_menu_for actor
+        action, targets = menu\choose!
+        play_action action, targets
+
+
+  elapse_turn: (action, target) =>
+    print "Running action", action, @order\elapse!
+    @order_list\recalc!
 
   on_key: (key) =>
     if key == "b"

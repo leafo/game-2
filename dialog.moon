@@ -61,8 +61,6 @@ class MenuStack
     @menus[name]
 
   on_key: (key) =>
-    top = @top!
-
     if key == "x"
       if #@stack > 1
         @pop!
