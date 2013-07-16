@@ -133,15 +133,6 @@ class ActionsMenu extends VerticalList
   alpha: 255
   fade_time: 0.2
 
-  draw_frame: =>
-    @frame\draw!
-
-  on_select: (item) =>
-    print "On select"
-    menu = @parent\push "enemies"
-    menu.on_select = (enemy) =>
-      @parent\elapse_turn item, enemy
-
   x: 5
   y: 140
   w: 87
@@ -156,7 +147,12 @@ class ActionsMenu extends VerticalList
     }
 
     @max_height = @h
-    -- @hide true
+    @hide true
+
+  draw_frame: =>
+    @frame\draw!
+
+  on_select: (item) => error "override me"
 
   hide: (immediate=false) =>
     if immediate
@@ -176,6 +172,9 @@ class ActionsMenu extends VerticalList
       @disabled = false
       @hidden = false
       tween @, @fade_time, h: @max_height, alpha: 255
+
+  on_active: (pushed) => @show! if pushed
+  on_inactive: => @hide!
 
   update: (dt) =>
     @frame.h = @h
@@ -331,26 +330,20 @@ class Battle extends MenuStack
     }
 
     @add_seq ->
-      print "waiting forever"
-      -- this is broken!
-      wait_until ->
-        love.keyboard.isDown "p"
-
-      print "done waiting"
-      again!
-
-    -- this is what our sequence should look like
-    seq = ->
+      wait 0.2
       while true
-        actor = get_next_actor!
-        menu = show_menu_for actor
-        action, targets = menu\choose!
-        play_action action, targets
+        actor, action, target = await @\choose_action
+        wait 0.2
 
-
-  elapse_turn: (action, target) =>
-    print "Running action", action, @order\elapse!
-    @order_list\recalc!
+  choose_action: (callback) =>
+    actor = @order\elapse!
+    actions = @push "actions"
+    actions.on_select = (item) ->
+      menu = @push "enemies"
+      menu.on_select = (_, enemy) ->
+        @pop 2
+        @order_list\recalc!
+        callback actor, item, enemy
 
   on_key: (key) =>
     if key == "b"

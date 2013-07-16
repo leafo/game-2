@@ -179,6 +179,8 @@ class ItemsMenu extends BaseMenu
       { "Thick Hands", "glove" }
     }, 10, 45, 300, 127
 
+    @push "tabs"
+
   draw_inside: =>
     -- @draw_container 10, 45, 300, 127
 
@@ -189,6 +191,7 @@ class MainMenu extends BaseMenu
   new: (@party) =>
     super!
     @add "main", MainMenuActions @, 219, 10, 91, 119
+    @push "main"
 
   on_show: (dispatch) =>
     @game = dispatch\parent!

@@ -28,8 +28,6 @@ class MenuStack
 
   add: (name, menu) =>
     @menus[name] = menu
-    unless next @stack
-      @push name
 
   push: (name) =>
     top = @top!
@@ -45,15 +43,18 @@ class MenuStack
     menu[@] = "active"
     menu
 
-  pop: =>
+  pop: (count=1) =>
     if top = @top!
       top[@] = nil
       top\on_inactive! if top.on_inactive
 
     with table.remove @stack
-      new_top = @top!
-      new_top\on_active false if new_top.on_active
-      new_top[@] = "active"
+      if new_top = @top!
+        new_top\on_active false if new_top.on_active
+        new_top[@] = "active"
+
+      if count > 1
+        return@pop count - 1
 
   top: =>
     name = @stack[#@stack]
