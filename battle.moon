@@ -223,7 +223,8 @@ class EntityGroup extends BaseList
 
   new: (...) =>
     super ...
-    @items = {} -- is overwritten
+    @items = {} -- overwritten
+    @mapping = {}
 
   draw: (v, state) =>
     for e in *@items
@@ -243,8 +244,13 @@ class EntityGroup extends BaseList
     cls = @etype
     pos = @distribute #items, @
 
+    @mapping = {}
     @items = for item in *items
-      cls item, pos!
+      obj = cls item, pos!
+      @mapping[item] = obj
+      obj
+
+  find_item: (item) => @mapping[item]
 
   distribute: (num, box, flip_x=@flip_x) =>
     y = coroutine.yield
@@ -333,10 +339,16 @@ class Battle extends MenuStack
       wait 0.2
       while true
         actor, action, target = await @\choose_action
+
+        ox, oy = actor.x, actor.y
+        tween actor, 0.5, x: target.x + target.w + 5, y: target.y
+        wait 0.1
+        tween actor, 0.5, x: ox, y: oy
+
         wait 0.2
 
   choose_action: (callback) =>
-    actor = @order\elapse!
+    actor = @char_group\find_item @order\elapse!
     actions = @push "actions"
     actions.on_select = (item) ->
       menu = @push "enemies"
