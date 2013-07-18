@@ -132,9 +132,11 @@ love.load = ->
   thick_font = load_font "img/font_thick.png",
     [[ abcdefghijklmnopqrstuvwxyz-1234567890!.,:;'"?$&/]]
 
+  number_font = load_font "img/font_numbers.png", [[ 1234567890]]
+
   g.setFont main_font
 
-  fonts = { :main_font, :thick_font }
+  fonts = { :main_font, :thick_font, :number_font }
 
   export sfx = lovekit.audio.Audio "sound"
 

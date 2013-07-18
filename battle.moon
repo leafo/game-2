@@ -7,6 +7,8 @@ import
   Frame, RedBar, BlueBar, VerticalList, MenuStack, BaseList
   from require "dialog"
 
+import NumberParticle from require "particles"
+
 local *
 
 rotate = (array) ->
@@ -301,6 +303,7 @@ class CharacterGroup extends EntityGroup
 
 class Battle extends MenuStack
   mixin Sequenced
+  mixin HasParticles
 
   viewport: Viewport scale: 2
 
@@ -343,9 +346,8 @@ class Battle extends MenuStack
         ox, oy = actor.x, actor.y
         tween actor, 0.5, x: target.x + target.w + 5, y: target.y
         wait 0.1
+        @particles\add NumberParticle target.x, target.y, 10
         tween actor, 0.5, x: ox, y: oy
-
-        wait 0.2
 
   choose_action: (callback) =>
     actor = @char_group\find_item @order\elapse!
@@ -379,6 +381,8 @@ class Battle extends MenuStack
 
     for f in *@frames
       f\draw!
+
+    @draw_inner!
 
     @viewport\pop!
     g.setFont fonts.main_font
