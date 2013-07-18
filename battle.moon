@@ -109,12 +109,20 @@ class CharacterFrame extends Frame
       BlueBar 0, 20, @char_width, 0.5
 
   draw_char_row: (i, char) =>
+    hp = @health_bars[i]
+    mp = @mana_bars[i]
+
     g.push!
     g.translate 4 + (i - 1) * @char_width, 4
 
     p char.name, 0, 0
-    @health_bars[i]\draw!
-    @mana_bars[i]\draw!
+    hp\draw!
+    mp\draw!
+
+    COLOR\pusha 240
+    g.printf tostring(_floor char.display_hp), hp.x, hp.y, hp.w - 4, "right"
+    g.printf tostring(_floor char.display_hp), mp.x, mp.y, mp.w - 4, "right"
+    COLOR\pop!
 
     g.pop!
 
@@ -129,6 +137,10 @@ class CharacterFrame extends Frame
     g.pop!
 
   update: (dt) =>
+    for i, hp_bar in ipairs @health_bars
+      char = @chars[i]
+      hp_bar.p = char.display_hp / char.max_hp
+
 
 class ActionsMenu extends VerticalList
   mixin Sequenced
@@ -207,6 +219,8 @@ class BattleEnemy extends Box
 
   thing: => @enemy
 
+  take_hit: (actor, damage) =>
+
   update: (dt) =>
 
 class BattleCharacter extends Box
@@ -215,16 +229,24 @@ class BattleCharacter extends Box
 
   new: (@char, x, y) =>
     @name = @char.name
+
+    @hp = @char.hp
+    @display_hp = @hp
+    @max_hp = @char.max_hp
+
     @x = x - @w / 2
     @y = y - @h
+
+  take_hit: (actor, damage) =>
+    @hp -= damage
 
   draw: =>
     @outline COLOR.green
 
   update: (dt) =>
+    @display_hp = approach @display_hp, @hp, dt * 10 * math.abs @display_hp - @hp
 
   thing: => @char
-
 
 -- a group of things on the field, like the group of players or the group of
 -- enemies
@@ -338,7 +360,7 @@ class Battle extends MenuStack
     @char_group\add @game.party.characters
 
     @order = BattleOrder [ e for e in all_values @char_group.items, @enemy_group.items ]
-    @char_frame = CharacterFrame @, @game.party.characters
+    @char_frame = CharacterFrame @, @char_group.items
 
     @add "actions", ActionsMenu @
     @add "characters", @char_group
@@ -365,14 +387,18 @@ class Battle extends MenuStack
 
         tween actor, 0.5, x: tx, y: ty
         wait 0.1
-        @particles\add NumberParticle target.x, target.y, 10
+
+        damage = math.random 8,14
+        @particles\add NumberParticle target.x, target.y, damage
+        target\take_hit actor, damage, @
         tween actor, 0.5, x: ox, y: oy
 
   choose_action: (callback) =>
     actor = @order\elapse!
 
     if actor.enemy
-      callback actor, false, @char_group.items[1]
+      target = pick_one unpack @char_group.items
+      callback actor, false, target
       @order_list\recalc!
       return
 

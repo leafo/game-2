@@ -10,10 +10,10 @@ class Character
   name: "Unknown"
 
   level: 1
-  hp: 0
+  hp: 100
   max_hp: 100
 
-  mp: 0
+  mp: 100
   max_mp: 100
 
   exp: 0
