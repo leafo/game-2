@@ -330,8 +330,8 @@ class Battle extends MenuStack
     assert @char_group, "Failed to create character group"
 
     enemy_party = {
-      { name: "Bad Dude", speed: 9 }
-      { name: "Fart Slayer", speed: 11 }
+      { name: "Bad Dude", speed: 20 }
+      { name: "Fart Slayer", speed: 18 }
     }
 
     @enemy_group\add enemy_party
@@ -357,7 +357,13 @@ class Battle extends MenuStack
         actor, action, target = await @\choose_action
 
         ox, oy = actor.x, actor.y
-        tween actor, 0.5, x: target.x + target.w + 5, y: target.y
+
+        tx, ty = if actor\left_of target
+          target.x - actor.w - 5, target.y
+        else
+          target.x + target.w + 5, target.y
+
+        tween actor, 0.5, x: tx, y: ty
         wait 0.1
         @particles\add NumberParticle target.x, target.y, 10
         tween actor, 0.5, x: ox, y: oy
