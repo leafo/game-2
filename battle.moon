@@ -31,11 +31,15 @@ class BattleOrder
       for e in *@entities
         { progress: 0, entity: e }
 
+  -- lets us pass in either a BattleEntity or a Entity
+  speed_for_entity: (e) =>
+    e.thing and e\thing!.speed or e.speed
+
   elapse: =>
     -- find out how much time to elapse
     local to_elapse
     for {:entity, :progress} in *@queue
-      t = (@capacity - progress) / entity.speed
+      t = (@capacity - progress) / @speed_for_entity(entity)
       if to_elapse == nil or t < to_elapse
         to_elapse = t
 
@@ -43,7 +47,7 @@ class BattleOrder
     -- doesn't just check for capacity to make sure we find something
     local max_tuple
     for tuple in *@queue
-      tuple.progress += tuple.entity.speed * to_elapse
+      tuple.progress += @speed_for_entity(tuple.entity) * to_elapse
 
       if max_tuple == nil or tuple.progress > max_tuple.progress
         max_tuple = tuple
@@ -189,17 +193,19 @@ class ActionsMenu extends VerticalList
 
 
 class BattleEnemy extends Box
-  name: "Butt"
   w: 10
   h: 20
 
   -- put x, y at feet
-  new: (_, x, y) =>
+  new: (@enemy, x, y) =>
+    @name = @enemy.name
     @x = x - @w / 2
     @y = y - @h
 
   draw: =>
     @outline COLOR.red
+
+  thing: => @enemy
 
   update: (dt) =>
 
@@ -216,6 +222,8 @@ class BattleCharacter extends Box
     @outline COLOR.green
 
   update: (dt) =>
+
+  thing: => @char
 
 
 -- a group of things on the field, like the group of players or the group of
@@ -321,10 +329,15 @@ class Battle extends MenuStack
     assert @enemy_group, "Failed to create enemy group"
     assert @char_group, "Failed to create character group"
 
-    @enemy_group\add { {}, {} }
+    enemy_party = {
+      { name: "Bad Dude", speed: 9 }
+      { name: "Fart Slayer", speed: 11 }
+    }
+
+    @enemy_group\add enemy_party
     @char_group\add @game.party.characters
 
-    @order = BattleOrder @game.party.characters
+    @order = BattleOrder [ e for e in all_values @char_group.items, @enemy_group.items ]
     @char_frame = CharacterFrame @, @game.party.characters
 
     @add "actions", ActionsMenu @
@@ -350,14 +363,22 @@ class Battle extends MenuStack
         tween actor, 0.5, x: ox, y: oy
 
   choose_action: (callback) =>
-    actor = @char_group\find_item @order\elapse!
-    actions = @push "actions"
-    actions.on_select = (item) ->
-      menu = @push "enemies"
-      menu.on_select = (_, enemy) ->
-        @pop 2
-        @order_list\recalc!
-        callback actor, item, enemy
+    actor = @order\elapse!
+
+    if actor.enemy
+      callback actor, false, @char_group.items[1]
+      @order_list\recalc!
+      return
+
+    if actor.char
+      actions = @push "actions"
+      actions.on_select = (item) ->
+        menu = @push "enemies"
+        menu.on_select = (_, enemy) ->
+          @pop 2
+          @order_list\recalc!
+          callback actor, item, enemy
+      return
 
   on_key: (key) =>
     if key == "b"
