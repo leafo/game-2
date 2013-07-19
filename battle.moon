@@ -161,7 +161,8 @@ class ActionsMenu extends VerticalList
     super {
       "Attack"
       "Defend"
-      -- "Magic"
+      "Item"
+      "Magic"
     }
 
     @max_height = @h
@@ -195,6 +196,7 @@ class ActionsMenu extends VerticalList
   on_inactive: => @hide!
 
   update: (dt) =>
+    super dt
     @frame.h = @h
 
   draw: (...) =>
@@ -352,8 +354,8 @@ class Battle extends MenuStack
     assert @char_group, "Failed to create character group"
 
     enemy_party = {
-      { name: "Bad Dude", speed: 20 }
-      { name: "Fart Slayer", speed: 18 }
+      { name: "Bad Dude", speed: 2 }
+      { name: "Fart Slayer", speed: 1 }
     }
 
     @enemy_group\add enemy_party

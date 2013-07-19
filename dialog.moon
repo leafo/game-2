@@ -169,6 +169,9 @@ class VerticalList extends BaseList
   padding_left: 0
   padding_top: 0
 
+  scroll_offset: 0
+  display_scroll_offset: 0
+
   new: (@items, ...) =>
     super ...
     @update_dimension!
@@ -179,8 +182,46 @@ class VerticalList extends BaseList
   cell_offset: (i) =>
     @padding_left, (i - 1) * (@row_height + @row_spacing) + @padding_top
 
-  draw_scrollbar: (w, h) =>
-    return if @inner_height <= h
+  move_updown: (...) =>
+    super ...
+
+    -- check if past bottom
+    ox, oy = @cell_offset @selected_item + 1
+    delta = oy - (@h + @scroll_offset)
+    if delta > 0
+      @scroll_offset += delta
+
+    -- check if before top
+    local oy
+    if @selected_item == 1
+      oy = 0
+    else
+      _, oy = @cell_offset @selected_item
+
+    delta = @scroll_offset - oy
+    if delta > 0
+      @scroll_offset -= delta
+
+  update: (dt) =>
+    @display_scroll_offset = approach @display_scroll_offset,
+      @scroll_offset, dt * 100
+
+  draw_scrollbar: =>
+    return if @inner_height <= @h
+
+    thumb_h = @h / @inner_height * @h
+    thumb_y = @scroll_offset / @inner_height * @h
+
+    scroll_y = 0
+    scroll_x = @w - @scrollbar_width
+
+    COLOR\push 0,0,0, 128
+    g.rectangle "fill", scroll_x, scroll_y, @scrollbar_width, @h
+
+    COLOR\set 255,255,255, 128
+    g.rectangle "fill", scroll_x, thumb_y, @scrollbar_width, thumb_h
+
+    COLOR\pop!
 
   draw: (v, state) =>
     x,y,w,h = @unpack!
@@ -196,6 +237,9 @@ class VerticalList extends BaseList
 
       g.setScissor vx,vy,vw,vh
 
+    g.push!
+    g.translate 0, -@display_scroll_offset
+
     -- draw items
     g.push!
     g.translate @cursor_offset, 0
@@ -204,7 +248,10 @@ class VerticalList extends BaseList
     g.pop!
 
     @draw_cursor state
-    @draw_scrollbar w, h
+
+    g.pop!
+
+    @draw_scrollbar!
 
     g.pop!
     if v
