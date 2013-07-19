@@ -146,7 +146,10 @@ class ActionsMenu extends VerticalList
   mixin Sequenced
 
   padding_top: Frame.padding
+  padding_bottom: Frame.padding
   padding_left: Frame.padding
+
+  row_spacing: 2
 
   alpha: 255
   fade_time: 0.2

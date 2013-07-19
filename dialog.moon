@@ -163,11 +163,14 @@ class BaseList extends Box
 class VerticalList extends BaseList
   row_height: 8
   row_spacing: 4
-  scrollbar_width: 4
   cursor_offset: 10
 
   padding_left: 0
   padding_top: 0
+  padding_bottom: 0
+
+  scrollbar_width: 4
+  scrollbar_padding: 3
 
   scroll_offset: 0
   display_scroll_offset: 0
@@ -177,7 +180,7 @@ class VerticalList extends BaseList
     @update_dimension!
 
   update_dimension: =>
-    @inner_height = (@row_height + @row_spacing) * #@items
+    @inner_height = (@row_height + @row_spacing) * #@items - @row_spacing + @padding_top + @padding_bottom
 
   cell_offset: (i) =>
     @padding_left, (i - 1) * (@row_height + @row_spacing) + @padding_top
@@ -189,18 +192,21 @@ class VerticalList extends BaseList
     ox, oy = @cell_offset @selected_item + 1
     delta = oy - (@h + @scroll_offset)
     if delta > 0
-      @scroll_offset += delta
+      @scroll_offset += delta + @h / 3
 
     -- check if before top
     local oy
     if @selected_item == 1
       oy = 0
     else
-      _, oy = @cell_offset @selected_item
+      _, oy = @cell_offset(@selected_item)
 
     delta = @scroll_offset - oy
     if delta > 0
-      @scroll_offset -= delta
+      @scroll_offset -= delta + @h / 3
+
+    max_offset = @inner_height - @h
+    @scroll_offset = max 0, min @scroll_offset, max_offset
 
   update: (dt) =>
     @display_scroll_offset = approach @display_scroll_offset,
@@ -209,14 +215,16 @@ class VerticalList extends BaseList
   draw_scrollbar: =>
     return if @inner_height <= @h
 
-    thumb_h = @h / @inner_height * @h
-    thumb_y = @scroll_offset / @inner_height * @h
+    scroll_h = @h - @scrollbar_padding * 2
 
-    scroll_y = 0
-    scroll_x = @w - @scrollbar_width
+    thumb_h = @h / @inner_height * scroll_h
+    thumb_y = @scroll_offset / @inner_height * scroll_h + @scrollbar_padding
+
+    scroll_y = @scrollbar_padding
+    scroll_x = @w - @scrollbar_width - @scrollbar_padding
 
     COLOR\push 0,0,0, 128
-    g.rectangle "fill", scroll_x, scroll_y, @scrollbar_width, @h
+    g.rectangle "fill", scroll_x, scroll_y, @scrollbar_width, scroll_h
 
     COLOR\set 255,255,255, 128
     g.rectangle "fill", scroll_x, thumb_y, @scrollbar_width, thumb_h
@@ -244,7 +252,14 @@ class VerticalList extends BaseList
     g.push!
     g.translate @cursor_offset, 0
     for i, item in ipairs @items
+      ox, oy = @cell_offset i
+      real_y = oy - @display_scroll_offset
+
+      continue if real_y > @h
+      continue if real_y + @row_height < 0
+
       @draw_cell i, item
+
     g.pop!
 
     @draw_cursor state
