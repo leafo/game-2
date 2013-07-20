@@ -339,6 +339,7 @@ class CharacterGroup extends EntityGroup
 class Battle extends MenuStack
   mixin Sequenced
   mixin HasParticles
+  mixin KeyRepeat
 
   viewport: Viewport scale: 2
 
@@ -444,6 +445,12 @@ class Battle extends MenuStack
 
     @viewport\pop!
     g.setFont fonts.main_font
+
+  on_show: =>
+    @push_key_repeat 0.15, 0.08
+
+  on_hide: =>
+    @pop_key_repeat!
 
 if ... == "test"
   moon = require "moon"

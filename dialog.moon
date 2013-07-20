@@ -21,6 +21,11 @@ class Frame extends ui.Frame
 -- like dispatch but for menus (or menu groups)
 -- sends input to the menu on the top
 -- draws all menus with states
+-- Fires the following methods on menus:
+-- on_active(true)    -- menu is pushed on top
+-- on_active(false)   -- menu is revealed from a pop
+-- on_push            -- menu previously on top is covered
+-- on_inactive        -- menu is popped
 class MenuStack
   new: =>
     @menus = {}
@@ -154,6 +159,7 @@ class BaseList extends Box
     true
 
   update: (dt) =>
+
 
   draw_frame: =>
     COLOR\pusha 20
