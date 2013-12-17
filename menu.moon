@@ -136,8 +136,7 @@ class BaseMenu extends MenuStack
 
   draw_background: =>
     @_tile_quad or= g.newQuad 0, 0, @viewport.w, @viewport.h, @tile_bg\width!, @tile_bg\height!
-    @tile_bg\drawq @_tile_quad, 0, 0
-
+    @tile_bg\draw @_tile_quad, 0, 0
 
 class ItemsMenuTabs extends HorizontalList
   padding_left: 10

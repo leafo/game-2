@@ -147,7 +147,7 @@ love.load = ->
     "select2"
   }
 
-  with DISPATCH = Dispatcher Battle Game!
+  with DISPATCH = Dispatcher Game!
     .default_transition = FadeTransition
     -- .default_transition = BattleTransition
 
