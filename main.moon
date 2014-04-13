@@ -138,7 +138,7 @@ love.load = ->
 
   fonts = { :main_font, :thick_font, :number_font }
 
-  export sfx = lovekit.audio.Audio "sound"
+  export sfx = Audio "sound"
 
   sfx\preload {
     "blip1"

@@ -120,8 +120,8 @@ class CharacterFrame extends Frame
     mp\draw!
 
     COLOR\pusha 240
-    g.printf tostring(_floor char.display_hp), hp.x, hp.y, hp.w - 4, "right"
-    g.printf tostring(_floor char.display_hp), mp.x, mp.y, mp.w - 4, "right"
+    g.printf tostring(math.floor char.display_hp), hp.x, hp.y, hp.w - 4, "right"
+    g.printf tostring(math.floor char.display_hp), mp.x, mp.y, mp.w - 4, "right"
     COLOR\pop!
 
     g.pop!
