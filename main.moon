@@ -1,7 +1,7 @@
 
 require "lovekit.all"
-require "lovekit.screen_snap"
-require "lovekit.reloader"
+-- require "lovekit.screen_snap"
+-- require "lovekit.reloader"
 
 export moon = require "moon"
 
@@ -22,8 +22,6 @@ import BattleTransition from require "transitions"
 import Battle from require "battle"
 
 export p = (str, ...) -> g.print str\lower!, ...
-
-local snapper
 
 class Player extends Entity
   lazy sprite: -> Spriter "img/characters.png", 16, 32
@@ -89,7 +87,7 @@ class Game
     @menu = MainMenu @party
 
     @player = Player!
-    @map = TileMap.from_tiled "maps.first", {
+    @map = TileMap\from_tiled "maps.first", {
       object: (o) ->
         switch o.name
           when "spawn"
@@ -152,17 +150,9 @@ love.load = ->
     -- .default_transition = BattleTransition
 
     .update = (dt) =>
-      snapper\tick!  if snapper
       Dispatcher.update @, dt
 
     .keypressed = (key, code) =>
-      if key == " "
-        if snapper
-          snapper\write!
-          snapper = nil
-        else
-          snapper = ScreenSnap!
-
       Dispatcher.keypressed @, key, code
 
     \bind love

@@ -345,7 +345,7 @@ class Battle extends MenuStack
 
   new: (@game) =>
     super!
-    @map = TileMap.from_tiled "maps.battle", {
+    @map = TileMap\from_tiled "maps.battle", {
       object: (obj) ->
         switch obj.name
           when "enemy_drop"
